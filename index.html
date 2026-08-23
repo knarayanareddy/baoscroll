@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="The Lighthouse That Remembered Names — a scroll-driven mixed-media cinematic journey through a handcrafted paper world." />
+  <meta name="theme-color" content="#171410" />
+  <title>The Lighthouse That Remembered Names</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23171410' stroke-width='4.5' stroke-linecap='round' stroke-dasharray='68 14' transform='rotate(-100 16 16)'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <!-- WebGL stage: every chapter renders into this one fixed canvas -->
+  <canvas id="webgl" aria-hidden="true"></canvas>
+
+  <!-- Loading screen: a lamp ring drawn by real asset progress -->
+  <div id="loader" role="status" aria-label="Loading the story">
+    <svg class="enso" viewBox="0 0 120 120" aria-hidden="true">
+      <circle class="enso-track" cx="60" cy="60" r="46" />
+      <circle class="enso-stroke" cx="60" cy="60" r="46" />
+    </svg>
+    <p class="loader-title">The Lighthouse <span>that</span> Remembered Names</p>
+    <p class="loader-note">trimming the wick&hellip;</p>
+  </div>
+
+  <!-- Fallback when WebGL is unavailable -->
+  <section id="no-webgl" hidden>
+    <div class="fallback-card">
+      <h1>The Lighthouse That Remembered Names</h1>
+      <p>
+        This is a WebGL story — a cut-paper coast, a lantern room, a wall of black water,
+        a drowned wreck and one lamp relit before morning. Your browser could not start
+        WebGL, so the moving picture cannot be painted here. The story itself is below.
+      </p>
+      <p>
+        Please try a recent version of Chrome, Edge, Firefox or Safari with hardware
+        acceleration enabled.
+      </p>
+      <ol>
+        <li><strong>Harbor at Dusk</strong> — the keeper walks the dock, ties off a dory, and opens the book of names.</li>
+        <li><strong>The First Name</strong> — Elias Rune bleeds out of a page that has held for a hundred years.</li>
+        <li><strong>The Storm Wall</strong> — the sea stands up and asks the lighthouse to forget.</li>
+        <li><strong>What the Water Kept</strong> — beneath the wrecks, stolen names drift inside bubbles of held breath.</li>
+        <li><strong>The Lamp Rekindled</strong> — the keeper turns the lamp into a vessel for every name still spoken.</li>
+        <li><strong>Birds of Morning</strong> — the names fold into birds and cross the harbour at dawn.</li>
+      </ol>
+      <p class="fallback-quote">Some names are not lost. They are carried.</p>
+    </div>
+  </section>
+
+  <!-- Minimal cinematic interface -->
+  <div class="ui" id="ui" hidden>
+    <div class="progress-line" aria-hidden="true"><div class="progress-fill" id="progress-fill"></div></div>
+
+    <div class="chapter-indicator" id="chapter-indicator">
+      <span class="chapter-num" id="chapter-num">一</span>
+      <span class="chapter-name" id="chapter-name">Harbor at Dusk</span>
+    </div>
+    <p class="visually-hidden" aria-live="polite" id="chapter-live"></p>
+
+    <nav class="chapter-nav" id="chapter-nav" aria-label="Story chapters"></nav>
+
+    <div class="controls" role="toolbar" aria-label="Experience controls" id="controls">
+      <button id="btn-sound" aria-label="Turn sound on" aria-pressed="false" title="Sound">
+        <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="wave" d="M16 9c1.5 1.6 1.5 4.4 0 6M18.5 6.5c2.8 3 2.8 8 0 11"/></svg>
+      </button>
+      <button id="btn-pause" aria-label="Pause ambient animation" aria-pressed="false" title="Pause">
+        <svg viewBox="0 0 24 24" class="icon-pause"><path d="M8 5v14M16 5v14"/></svg>
+        <svg viewBox="0 0 24 24" class="icon-play" hidden><path d="M8 5l11 7-11 7z"/></svg>
+      </button>
+      <button id="btn-motion" aria-label="Reduce motion" aria-pressed="false" title="Reduced motion">
+        <svg viewBox="0 0 24 24"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>
+      </button>
+      <button id="btn-fullscreen" aria-label="Enter fullscreen" title="Fullscreen">
+        <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      </button>
+      <button id="btn-replay" aria-label="Read the logbook again" title="Replay">
+        <svg viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 2 6"/><path d="M4 4v6h6"/></svg>
+      </button>
+    </div>
+
+    <p class="scroll-hint" id="scroll-hint">Scroll to follow the tide</p>
+  </div>
+
+  <!-- Chapter 1 title card, painted in by scroll -->
+  <div class="title-card" id="title-card" aria-hidden="true">
+    <p class="title-eyebrow">a sea fable told by an old light</p>
+    <h1 class="title-main" id="title-main">THE LIGHTHOUSE THAT REMEMBERED NAMES</h1>
+    <p class="title-sub">A scroll-driven cut-paper voyage in six chapters</p>
+  </div>
+
+  <!-- Chapter 4 quote -->
+  <blockquote class="river-quote" id="river-quote" aria-hidden="true">
+    <p>&ldquo;The sea does not destroy what it takes. It keeps it.&rdquo;</p>
+  </blockquote>
+
+  <!-- Chapter 6 closing card -->
+  <div class="final-card" id="final-card" aria-hidden="true">
+    <p class="final-text">Some names are not lost. They are carried.</p>
+    <div class="final-actions">
+      <button id="btn-replay-final" class="paper-btn">Read the logbook again</button>
+      <button id="btn-explore" class="paper-btn ghost">Keep the beacon lit</button>
+    </div>
+  </div>
+
+  <!-- Anime overlays (chapter 3) -->
+  <div class="speed-lines" id="speed-lines" aria-hidden="true"></div>
+  <div class="impact-flash" id="impact-flash" aria-hidden="true"></div>
+
+  <!-- Torn page overlays (chapter 5) -->
+  <div class="tear tear-left" id="tear-left" aria-hidden="true"></div>
+  <div class="tear tear-right" id="tear-right" aria-hidden="true"></div>
+
+  <!-- Rotating Fresnel beam masks chapter handoffs; its intensity is driven by TransitionManager. -->
+  <div class="beam-transition" id="beam-transition" aria-hidden="true"></div>
+
+  <!-- Paper grain + vignette over everything -->
+  <div class="grain" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <!-- Brush-tip cursor (desktop only) -->
+  <div class="brush-cursor" id="brush-cursor" aria-hidden="true"></div>
+
+  <!-- The scroll track: six tall semantic sections drive the timeline.
+       Their heights are set from utils/constants.js at boot. -->
+  <main id="story">
+    <section data-chapter="0" id="chapter-harbor"><h2 class="visually-hidden">Chapter 1 — Harbor at Dusk</h2></section>
+    <section data-chapter="1" id="chapter-first-name"><h2 class="visually-hidden">Chapter 2 — The First Name</h2></section>
+    <section data-chapter="2" id="chapter-storm-wall"><h2 class="visually-hidden">Chapter 3 — The Storm Wall</h2></section>
+    <section data-chapter="3" id="chapter-wrecks"><h2 class="visually-hidden">Chapter 4 — What the Water Kept</h2></section>
+    <section data-chapter="4" id="chapter-beacon"><h2 class="visually-hidden">Chapter 5 — The Lamp Rekindled</h2></section>
+    <section data-chapter="5" id="chapter-dawn"><h2 class="visually-hidden">Chapter 6 — Birds of Morning</h2></section>
+  </main>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+/* ============================================================
+   Interface chrome: progress line, chapter indicator,
+   chapter navigation, control toolbar, scroll hint.
+   ============================================================ */
+
+.ui { position: fixed; inset: 0; z-index: 40; pointer-events: none; }
+.ui[hidden] { display: none; }
+
+/* Thin story-progress line across the top */
+.progress-line {
+  position: absolute;
+  top: calc(var(--safe-top) + 0px);
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(244, 234, 210, 0.12);
+}
+.progress-fill {
+  height: 100%;
+  width: 100%;
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, var(--coral), var(--gold));
+}
+
+/* Chapter number + title, top left */
+.chapter-indicator {
+  position: absolute;
+  top: calc(var(--safe-top) + 1.4rem);
+  left: 1.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.8rem;
+  text-shadow: 0 1px 10px rgba(10, 8, 6, 0.5);
+  transition: opacity 0.6s ease;
+}
+.chapter-num {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  line-height: 1;
+  color: var(--gold);
+}
+.chapter-name {
+  font-family: var(--font-utility);
+  font-size: 0.68rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+/* Right-edge chapter dots */
+.chapter-nav {
+  position: absolute;
+  right: 1.1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  pointer-events: auto;
+}
+.chapter-nav button {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 1px solid rgba(244, 234, 210, 0.65);
+  border-radius: 50%;
+  background: transparent;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+.chapter-nav button:hover { transform: scale(1.25); }
+.chapter-nav button.active {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+.chapter-nav button .tip {
+  position: absolute;
+  right: 1.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-size: 0.62rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--paper);
+  background: rgba(18, 15, 12, 0.75);
+  padding: 0.35em 0.8em;
+  border-radius: 2px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.chapter-nav button:hover .tip,
+.chapter-nav button:focus-visible .tip { opacity: 1; }
+
+/* Control toolbar, bottom left */
+.controls {
+  position: absolute;
+  left: 1.2rem;
+  bottom: calc(var(--safe-bottom) + 1.2rem);
+  display: flex;
+  gap: 0.55rem;
+  pointer-events: auto;
+}
+.controls button {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(244, 234, 210, 0.3);
+  border-radius: 50%;
+  background: rgba(18, 15, 12, 0.55);
+  backdrop-filter: blur(6px);
+  transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+}
+.controls button:hover { border-color: var(--gold); transform: translateY(-2px); }
+.controls button svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: var(--paper);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.controls button[aria-pressed="true"] { background: rgba(232, 178, 58, 0.22); border-color: var(--gold); }
+.controls button[aria-pressed="true"] svg { stroke: var(--gold); }
+#btn-sound[aria-pressed="false"] .wave { opacity: 0.25; }
+
+/* Opening hint */
+.scroll-hint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--safe-bottom) + 2.2rem);
+  transform: translateX(-50%);
+  margin: 0;
+  font-family: var(--font-utility);
+  font-size: 0.68rem;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: rgba(23, 20, 16, 0.75);
+  opacity: 0;
+  transition: opacity 1.2s ease;
+  animation: hint-bob 2.6s ease-in-out infinite;
+}
+.scroll-hint.show { opacity: 1; }
+.scroll-hint.gone { opacity: 0 !important; }
+@keyframes hint-bob {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(7px); }
+}
+
+/* Dark-scene variant: indicator/hint readable over ink chapters */
+.ui.on-dark .chapter-indicator { color: var(--paper); }
+.ui.on-light .chapter-indicator { color: var(--ink); text-shadow: none; }
+.ui.on-light .chapter-name { opacity: 0.7; }
+.ui.on-light .chapter-nav button { border-color: rgba(23, 20, 16, 0.5); }
