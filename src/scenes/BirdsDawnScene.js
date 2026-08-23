@@ -99,7 +99,7 @@ export class BirdsDawnScene extends BaseScene {
     const TOWER_H = 7.4;
     this.towerAxis = new THREE.Vector2(0, -0.6);
     this.galleryY = TOWER_BASE + TOWER_H + 0.07;
-    this.lampY = TOWER_BASE + TOWER_H + 0.6;
+    this.lampY = TOWER_BASE + TOWER_H + 1.15;
 
     this.tower = kit.makeLighthouse({ height: TOWER_H, wall: '#f3e6ca', band: P.coral });
     this.tower.position.set(this.towerAxis.x, TOWER_BASE, this.towerAxis.y);
@@ -108,7 +108,7 @@ export class BirdsDawnScene extends BaseScene {
     const stainColors = ['#e2705f', '#f0b463', '#8fc3b8', '#c98fb0', '#f2dc98', '#7fa9c4'];
     for (let i = 0; i < 12; i++) {
       const pane = new THREE.Mesh(
-        new THREE.PlaneGeometry(0.62, 1.5),
+        new THREE.PlaneGeometry(0.86, 2.05),
         new THREE.MeshBasicMaterial({
           color: stainColors[i % stainColors.length],
           transparent: true,
@@ -119,7 +119,7 @@ export class BirdsDawnScene extends BaseScene {
         })
       );
       const a = (i / 12) * Math.PI * 2;
-      pane.position.set(Math.cos(a) * 1.06, this.lampY, Math.sin(a) * 1.06 - 0.6);
+      pane.position.set(Math.cos(a) * 1.49, this.lampY, Math.sin(a) * 1.49 - 0.6);
       pane.rotation.y = -a + Math.PI / 2;
       this.group.add(pane);
       this.stained.push(pane);
@@ -224,7 +224,8 @@ export class BirdsDawnScene extends BaseScene {
 
     /* ---- the keeper, on his gallery, done ---- */
     // On the gallery deck, at the rail, looking out over the harbour.
-    this.keeperStand = new THREE.Vector3(0.95, this.galleryY, 0.02);
+    // out on the gallery deck, clear of the glass, at the rail
+    this.keeperStand = new THREE.Vector3(1.35, this.galleryY, 0.35);
     this.keeper = new Keeper(kit);
     this.keeper.group.position.copy(this.keeperStand);
     this.keeper.group.rotation.y = 1.0;

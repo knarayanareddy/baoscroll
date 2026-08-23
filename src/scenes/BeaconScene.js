@@ -26,8 +26,10 @@ const CAM = [
   { t: 0.16, pos: [4.0, 2.6, 5.0], look: [0.4, 3.6, -0.4], fov: 42 },
   { t: 0.32, pos: [3.2, 5.2, 4.2], look: [0.3, 5.9, -0.3], fov: 40 },
   { t: 0.44, pos: [1.9, 7.8, 1.0], look: [0.05, 7.05, 2.4], fov: 38 },
-  { t: 0.56, pos: [3.3, 7.6, 1.6], look: [1.5, 7.0, -0.2], fov: 34 },
-  { t: 0.7, pos: [1.9, 8.1, 1.4], look: [0, 7.62, -0.4], fov: 30 },
+  // Cross to the far side of the wheel for the effort beats: from behind
+  // him the camera only ever sees the back of his head.
+  { t: 0.56, pos: [3.7, 7.9, -1.6], look: [1.3, 7.05, 0.1], fov: 36 },
+  { t: 0.7, pos: [2.6, 8.4, -2.6], look: [0.2, 7.7, -0.4], fov: 32 },
   { t: 0.82, pos: [3.0, 8.1, 2.6], look: [0.2, 7.5, -0.5], fov: 48 },
   { t: 0.92, pos: [2.0, 8.3, 4.6], look: [-1.6, 7.2, -8], roll: 0.02, fov: 54 },
   { t: 1.0, pos: [0.6, 8.6, 7.4], look: [-3.0, 6.6, -16], roll: 0.03, fov: 58 }

@@ -199,51 +199,63 @@ export function createPaperKit(assets) {
       g.add(win);
     }
 
+    // The lantern room is sized to hold a person: a keeper is about 1.75
+    // units tall, so a one-unit-high glass box makes him wear the tower
+    // like a hat the moment he steps onto the gallery.
     const gallery = new THREE.Mesh(
-      geo('lhGallery', () => new THREE.CylinderGeometry(1.34, 1.34, 0.14, 18)),
+      geo('lhGallery', () => new THREE.CylinderGeometry(1.85, 1.85, 0.14, 18)),
       brassMat('#7d6338')
     );
     gallery.position.y = height;
     g.add(gallery);
-    for (let i = 0; i < 14; i++) {
-      const a = (i / 14) * Math.PI * 2;
-      const rail = new THREE.Mesh(geo('lhRail', () => new THREE.CylinderGeometry(0.022, 0.022, 0.4, 5)), brassMat('#95763f'));
-      rail.position.set(Math.cos(a) * 1.28, height + 0.27, Math.sin(a) * 1.28);
+    for (let i = 0; i < 16; i++) {
+      const a = (i / 16) * Math.PI * 2;
+      const rail = new THREE.Mesh(geo('lhRail', () => new THREE.CylinderGeometry(0.024, 0.024, 0.8, 5)), brassMat('#95763f'));
+      rail.position.set(Math.cos(a) * 1.78, height + 0.45, Math.sin(a) * 1.78);
       g.add(rail);
     }
+    const handrail = new THREE.Mesh(
+      geo('lhHandrail', () => new THREE.TorusGeometry(1.78, 0.035, 6, 26)),
+      brassMat('#c79a4e')
+    );
+    handrail.rotation.x = Math.PI / 2;
+    handrail.position.y = height + 0.85;
+    g.add(handrail);
 
     const lanternRoom = new THREE.Mesh(
-      geo('lhGlass', () => new THREE.CylinderGeometry(1.06, 1.06, 1.0, 14, 1, true)),
+      geo('lhGlass', () => new THREE.CylinderGeometry(1.5, 1.5, 2.1, 14, 1, true)),
       new THREE.MeshBasicMaterial({ color: '#cfe4e2', transparent: true, opacity: 0.26, side: THREE.DoubleSide, depthWrite: false, toneMapped: false })
     );
-    lanternRoom.position.y = height + 0.6;
+    lanternRoom.position.y = height + 1.15;
     g.add(lanternRoom);
     for (let i = 0; i < 10; i++) {
       const a = (i / 10) * Math.PI * 2;
-      const mullion = new THREE.Mesh(geo('lhMullion', () => new THREE.BoxGeometry(0.05, 1.02, 0.05)), paperMat(trim));
-      mullion.position.set(Math.cos(a) * 1.07, height + 0.6, Math.sin(a) * 1.07);
+      const mullion = new THREE.Mesh(geo('lhMullion', () => new THREE.BoxGeometry(0.06, 2.12, 0.06)), paperMat(trim));
+      mullion.position.set(Math.cos(a) * 1.51, height + 1.15, Math.sin(a) * 1.51);
       g.add(mullion);
     }
 
-    const roof = new THREE.Mesh(geo('lhRoof', () => new THREE.ConeGeometry(1.42, 1.05, 14)), paperMat(trim));
-    roof.position.y = height + 1.62;
-    const finial = new THREE.Mesh(geo('lhFinial', () => new THREE.SphereGeometry(0.1, 8, 6)), brassMat('#c79a4e'));
-    finial.position.y = height + 2.2;
+    const roof = new THREE.Mesh(geo('lhRoof', () => new THREE.ConeGeometry(1.95, 1.3, 14)), paperMat(trim));
+    roof.position.y = height + 2.85;
+    const finial = new THREE.Mesh(geo('lhFinial', () => new THREE.SphereGeometry(0.12, 8, 6)), brassMat('#c79a4e'));
+    finial.position.y = height + 3.6;
     g.add(roof, finial);
 
     const lampAnchor = new THREE.Object3D();
-    lampAnchor.position.y = height + 0.6;
+    lampAnchor.position.y = height + 1.15;
     g.add(lampAnchor);
 
     const halo = new THREE.Sprite(
       new THREE.SpriteMaterial({ map: assets.get('glow'), color: '#ffd27a', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })
     );
-    halo.position.y = height + 0.6;
+    halo.position.y = height + 1.15;
     halo.scale.setScalar(4.5);
     g.add(halo);
 
     g.userData.lampAnchor = lampAnchor;
     g.userData.galleryY = height;
+    g.userData.lampY = height + 1.15;
+    g.userData.galleryRadius = 1.85;
     g.userData.setGlow = (k) => {
       halo.material.opacity = 0.62 * k;
       halo.scale.setScalar(3.4 + k * 3.6);

@@ -22,11 +22,12 @@ const CAM = [
   { t: 0.0, pos: [0, 3.4, 17], look: [0, 2.6, 0], fov: 44 },
   { t: 0.14, pos: [0.4, 2.9, 9.6], look: [0, 2.1, 0], fov: 40 },
   { t: 0.3, pos: [1.1, 2.5, 4.6], look: [0.1, 1.5, 0.2], fov: 38 },
-  { t: 0.44, pos: [0.5, 2.15, 2.9], look: [-0.15, 1.3, 0.5], fov: 33 },
-  // the macro insert: high enough that the near edge of the desk stays
-  // out of the frame, and square onto the line of handwriting
-  { t: 0.6, pos: [-0.26, 2.05, 1.95], look: [-0.24, 1.19, 0.62], fov: 27 },
-  { t: 0.74, pos: [-0.6, 2.15, 2.5], look: [-0.2, 1.3, 0.5], fov: 31 },
+  { t: 0.44, pos: [1.5, 2.15, 3.0], look: [-0.15, 1.3, 0.5], fov: 33 },
+  // The macro insert comes in from the keeper's left: high enough to
+  // clear the near edge of the desk, and off-axis so his head does not
+  // sit on the line of handwriting. His hand enters from frame right.
+  { t: 0.6, pos: [-1.55, 1.92, 1.4], look: [-0.3, 1.2, 0.68], fov: 30 },
+  { t: 0.74, pos: [-1.5, 2.1, 2.1], look: [-0.25, 1.28, 0.55], fov: 34 },
   { t: 0.88, pos: [0.6, 2.3, 3.0], look: [-1.6, 2.2, -5], fov: 40 },
   { t: 1.0, pos: [1.2, 2.5, 3.6], look: [-3.4, 2.6, -13], roll: -0.02, fov: 46 }
 ];
@@ -228,14 +229,16 @@ export class FirstNameScene extends BaseScene {
       k.setPose('idle', time);
       k.setHeadLook(-0.2 - turn * 0.3, -0.05);
     } else if (reach > 0.02) {
-      k.group.position.set(-0.2, 0, 2.3);
-      k.group.rotation.y = Math.PI;
+      // he works from the right-hand end of the desk, so the camera can
+      // hold the page without his shoulders in the way
+      k.group.position.set(0.62, 0, 2.15);
+      k.group.rotation.y = Math.PI - 0.28;
       k.setPose('reach', time, reach);
       // the hand goes exactly where the ink is leaving
       this._reach.set(-0.44, 1.35, 1.12);
     } else {
-      k.group.position.set(-0.2, 0, 2.42);
-      k.group.rotation.y = Math.PI;
+      k.group.position.set(0.55, 0, 2.34);
+      k.group.rotation.y = Math.PI - 0.2;
       k.setPose('page', time, writing);
     }
     k.setForce(0.05, time);

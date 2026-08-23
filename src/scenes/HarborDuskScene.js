@@ -193,7 +193,7 @@ export class HarborDuskScene extends BaseScene {
     this.tower.position.set(6.6, -0.1, -3);
     this.group.add(this.tower);
     this.lamp = new THREE.PointLight(P.window, 0, 26, 2);
-    this.lamp.position.set(6.6, 6.5, -3);
+    this.lamp.position.set(6.6, this.tower.position.y + this.tower.userData.lampY, -3);
     this.group.add(this.lamp);
 
     // the path up the headland the keeper actually walks
@@ -364,7 +364,7 @@ export class HarborDuskScene extends BaseScene {
       hemi: 0.9 - light * 0.2,
       key: 1 - light * 0.25,
       rim: 0.32,
-      accent: { pos: [6.6, 6.5, -3], intensity: 0.4 + beam * 2.2, color: P.window }
+      accent: { pos: [6.6, this.lamp.position.y, -3], intensity: 0.4 + beam * 2.2, color: P.window }
     });
   }
 }

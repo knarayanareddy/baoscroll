@@ -154,14 +154,15 @@ export class StormWallScene extends BaseScene {
     this.tower.position.set(7.4, -0.6, -5);
     this.tower.scale.setScalar(0.92);
     this.group.add(this.tower);
+    const towerLampY = this.tower.position.y + this.tower.userData.lampY * this.tower.scale.y;
     this.towerLight = new THREE.PointLight(P.ember, 1.6, 30, 2);
-    this.towerLight.position.set(7.4, 5.6, -5);
+    this.towerLight.position.set(7.4, towerLampY, -5);
     this.group.add(this.towerLight);
 
     // the beam, deliberately broken into segments so water and glass can
     // eat pieces of it rather than dimming it uniformly
     this.beam = new THREE.Group();
-    this.beam.position.set(7.4, 5.4, -5);
+    this.beam.position.set(7.4, towerLampY, -5);
     this.group.add(this.beam);
     this.beamSegments = [];
     for (let i = 0; i < 6; i++) {
@@ -348,7 +349,7 @@ export class StormWallScene extends BaseScene {
       hemi: 0.3 + bolt * 0.4,
       key: 0.34 + bolt * 0.6,
       rim: 0.75,
-      accent: { pos: [7.4, 5.6, -5], intensity: 1.2, color: P.ember }
+      accent: { pos: [7.4, this.towerLight.position.y, -5], intensity: 1.2, color: P.ember }
     });
   }
 }
