@@ -1,6 +1,8 @@
 import './styles/global.css';
 import './styles/interface.css';
 import './styles/responsive.css';
+import './styles/read-mode.css';
+import './styles/narration.css';
 import 'lenis/dist/lenis.css';
 
 import gsap from 'gsap';
@@ -152,6 +154,16 @@ async function boot() {
     experience.audio.setEnabled(on);
   });
 
+  const btnNarration = $('btn-narration');
+  btnNarration.addEventListener('click', () => {
+    const on = btnNarration.getAttribute('aria-pressed') !== 'true';
+    btnNarration.setAttribute('aria-pressed', String(on));
+    btnNarration.setAttribute('aria-label', on ? 'Stop lighthouse narration' : 'Start lighthouse narration');
+    btnNarration.textContent = on ? 'Voice on' : 'Voice';
+    experience.narration.setEnabled(on);
+    if (on) experience.narration.startAtCurrentChapter();
+  });
+
   const btnPause = $('btn-pause');
   btnPause.addEventListener('click', () => {
     const paused = btnPause.getAttribute('aria-pressed') !== 'true';
@@ -170,6 +182,13 @@ async function boot() {
     btnMotion.setAttribute('aria-label', on ? 'Restore full motion' : 'Reduce motion');
     experience.setReducedMotion(on);
   });
+
+  const readMode = $('read-mode');
+  $('btn-read').addEventListener('click', () => {
+    if (typeof readMode.showModal === 'function') readMode.showModal();
+    else readMode.setAttribute('open', '');
+  });
+  $('btn-close-read').addEventListener('click', () => readMode.close());
 
   const btnFullscreen = $('btn-fullscreen');
   if (!document.documentElement.requestFullscreen) {

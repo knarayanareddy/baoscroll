@@ -28,6 +28,7 @@ export class AudioController {
     this.paused = false;
     this.chapter = 0;
     this.ctx = null;
+    this.narrationDuck = 1;
     this._chimeTimer = null;
   }
 
@@ -144,19 +145,27 @@ export class AudioController {
     this._applyMix(index);
   }
 
+  _setMaster(seconds = 0.5) {
+    if (!this.ctx) return;
+    const target = this.enabled && !this.paused ? 0.8 * this.narrationDuck : 0;
+    this.master.gain.setTargetAtTime(target, this.ctx.currentTime, seconds);
+  }
+
   setEnabled(on) {
     this.enabled = on;
     if (on && !this.ctx) this._init();
     if (!this.ctx) return;
     if (on) this.ctx.resume();
-    const t = this.ctx.currentTime;
-    this.master.gain.setTargetAtTime(on && !this.paused ? 0.8 : 0, t, 0.6);
+    this._setMaster(0.6);
   }
 
   setPaused(paused) {
     this.paused = paused;
-    if (!this.ctx) return;
-    const t = this.ctx.currentTime;
-    this.master.gain.setTargetAtTime(this.enabled && !paused ? 0.8 : 0, t, 0.4);
+    this._setMaster(0.4);
+  }
+
+  setNarrationDuck(active) {
+    this.narrationDuck = active ? 0.42 : 1;
+    this._setMaster(active ? 0.22 : 0.8);
   }
 }

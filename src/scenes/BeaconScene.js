@@ -215,6 +215,10 @@ export class BeaconScene extends BaseScene {
     /* ---- the keeper ---- */
     this.keeper = new Keeper(kit);
     this.keeper.setGrounded(false);
+    this._wheelGrip = new THREE.Vector3();
+    this._keeperHand = new THREE.Vector3();
+    this._keeperFoot = new THREE.Vector3();
+    this._contactDelta = new THREE.Vector3();
     this.group.add(this.keeper.group);
 
     this.fog = new THREE.Fog(new THREE.Color(P.fog), 8, 44);
@@ -241,6 +245,15 @@ export class BeaconScene extends BaseScene {
       k.group.rotation.y = -2.05;
       k.setPose('wheel', time, (wheel * 2.5) % 1);
       k.setForce(0.2 + ignite * 0.5, time);
+      // Solve the hero's placement from the actual wheel handle and hand
+      // anchor every frame. The wheel and animation can change independently
+      // without drifting into a "standing near the wheel" illusion.
+      this.lamp.root.updateMatrixWorld(true);
+      k.group.updateMatrixWorld(true);
+      this.lamp.gripA.getWorldPosition(this._wheelGrip);
+      k.handR.getWorldPosition(this._keeperHand);
+      this._contactDelta.subVectors(this._wheelGrip, this._keeperHand);
+      k.group.position.add(this._contactDelta);
     } else if (climb < 0.995) {
       const i = Math.min(this.treads.length - 1, Math.floor(easeInOut(climb) * (this.treads.length - 1)));
       const tread = this.treads[i];
@@ -248,6 +261,11 @@ export class BeaconScene extends BaseScene {
       k.group.rotation.y = tread.rot;
       k.setPose('climb', time);
       k.setForce(0.12, time);
+      // Ground the lead foot on the actual tread after the pose is applied.
+      k.group.updateMatrixWorld(true);
+      k.footL.getWorldPosition(this._keeperFoot);
+      this._contactDelta.subVectors(tread.pos, this._keeperFoot);
+      k.group.position.add(this._contactDelta);
     } else {
       k.group.position.set(1.1, 6.05, 1.4);
       k.group.rotation.y = -2.2;

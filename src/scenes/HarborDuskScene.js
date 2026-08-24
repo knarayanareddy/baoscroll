@@ -259,6 +259,7 @@ export class HarborDuskScene extends BaseScene {
     this.keeper = new Keeper(kit);
     this.keeper.group.position.set(-13, 0, 1);
     this.keeper.group.rotation.y = Math.PI / 2;
+    this._ropeHand = new THREE.Vector3();
     this.group.add(this.keeper.group);
 
     this.fog = new THREE.Fog(new THREE.Color(P.fog), 14, 52);
@@ -316,8 +317,15 @@ export class HarborDuskScene extends BaseScene {
       this.dory.userData.sail.rotation.y = Math.sin(time * 0.7) * 0.14 * motion;
     }
     // rope stays attached to the boat as it comes in
+    // At the haul beat, the visible rope starts at the keeper's actual hand
+    // anchor. Outside it, it rests on the cleat. This prevents a hand-near-
+    // rope staging cheat from reading as contact.
+    k.group.updateMatrixWorld(true);
+    const ropeStart = haul > 0.001
+      ? k.handR.getWorldPosition(this._ropeHand)
+      : this._ropeHand.set(-2.6, 0.2, 1.2);
     this.rope.userData.setEnds(
-      new THREE.Vector3(-2.6, 0.2, 1.2),
+      ropeStart,
       new THREE.Vector3(this.dory.position.x + 0.1, 0.15, this.dory.position.z - 0.6)
     );
 

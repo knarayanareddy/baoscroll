@@ -1,0 +1,12 @@
+{
+  "$schema": "https://example.invalid/lighthouse-performance-budget/v1",
+  "description": "Maximum renderer counters captured by scripts/smoke.mjs at ?quality=low. These guard against accidental scene-density regressions; tighten after collecting approved device profiles.",
+  "smokeLow": {
+    "0": { "drawCalls": 650, "triangles": 160000 },
+    "1": { "drawCalls": 650, "triangles": 160000 },
+    "2": { "drawCalls": 750, "triangles": 180000 },
+    "3": { "drawCalls": 750, "triangles": 180000 },
+    "4": { "drawCalls": 750, "triangles": 180000 },
+    "5": { "drawCalls": 750, "triangles": 180000 }
+  }
+}

@@ -63,6 +63,7 @@
       <button id="btn-sound" aria-label="Turn sound on" aria-pressed="false" title="Sound">
         <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="wave" d="M16 9c1.5 1.6 1.5 4.4 0 6M18.5 6.5c2.8 3 2.8 8 0 11"/></svg>
       </button>
+      <button id="btn-narration" aria-label="Start lighthouse narration" aria-pressed="false" title="Narration">Voice</button>
       <button id="btn-pause" aria-label="Pause ambient animation" aria-pressed="false" title="Pause">
         <svg viewBox="0 0 24 24" class="icon-pause"><path d="M8 5v14M16 5v14"/></svg>
         <svg viewBox="0 0 24 24" class="icon-play" hidden><path d="M8 5l11 7-11 7z"/></svg>
@@ -76,10 +77,26 @@
       <button id="btn-replay" aria-label="Read the logbook again" title="Replay">
         <svg viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 2 6"/><path d="M4 4v6h6"/></svg>
       </button>
+      <button id="btn-read" aria-label="Read story transcript" title="Read story">Read</button>
     </div>
 
     <p class="scroll-hint" id="scroll-hint">Scroll to follow the tide</p>
   </div>
+
+  <div class="narration-caption" id="narration-caption" aria-hidden="true"></div>
+  <p class="visually-hidden" id="narration-live" aria-live="polite"></p>
+
+  <dialog class="read-mode" id="read-mode" aria-labelledby="read-mode-title">
+    <div class="read-mode-head"><p class="eyebrow">The complete logbook</p><button id="btn-close-read" aria-label="Close story transcript">Close</button></div>
+    <h2 id="read-mode-title">The Lighthouse That Remembered Names</h2>
+    <p class="read-intro">On this coast, the sea takes one memory from every departing sailor. An old keeper records each name so no one is lost twice.</p>
+    <article><h3>I. Harbor at Dusk</h3><p>The keeper walks the familiar dock with lantern and book. He checks the mooring line, watches the village windows answer the evening, and climbs to the light as a dark shape gathers beyond the harbor.</p></article>
+    <article><h3>II. The First Name</h3><p>In the lantern room, Elias Rune disappears from the Keeping Book. The keeper reaches for the wet ink as it lifts from the page and passes through the rain-streaked glass toward the sea.</p></article>
+    <article><h3>III. The Storm Wall</h3><p>The sea arrives as a wall of black water. The keeper hauls the boat line, braces against the wind, and runs as the dock floods beneath the broken beam.</p></article>
+    <article><h3>IV. What the Water Kept</h3><p>Beneath the surface, the keeper enters a wreck filled with letters, relics, and names the water could not consume. Each recovered memory gathers in the lantern and rises toward the lighthouse.</p></article>
+    <article><h3>V. The Lamp Rekindled</h3><p>The keeper climbs the spiral stair and turns the brass wheel of the Fresnel lamp. Names enter the core, its glass aligns, and a beam opens the storm.</p></article>
+    <article><h3>VI. Birds of Morning</h3><p>The keeper releases the names. They leave the beam as birds and fly across the waking harbor. The book remains, but its names have returned to the living world.</p></article>
+  </dialog>
 
   <!-- Chapter 1 title card, painted in by scroll -->
   <div class="title-card" id="title-card" aria-hidden="true">

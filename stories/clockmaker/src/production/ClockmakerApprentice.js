@@ -1,0 +1,23 @@
+import * as THREE from 'three';
+
+// Production apprentice: a cut-paper rig with stable contact anchors and
+// secondary cloth/satchel motion. Scene code only speaks in actions/anchors.
+export class ClockmakerApprentice {
+  constructor(kit){const mat=(kind,color)=>kit.material(kind,color);this.group=new THREE.Group();this.body=new THREE.Group();this.body.position.y=.94;this.group.add(this.body);
+    const coat=new THREE.Mesh(new THREE.CylinderGeometry(.28,.42,.72,8),mat('paper','#294766'));coat.position.y=.12;this.body.add(coat);this.coatTail=new THREE.Group();this.coatTail.position.set(0,-.25,-.27);this.body.add(this.coatTail);for(let i=0;i<5;i++){const tail=new THREE.Mesh(new THREE.PlaneGeometry(.19,.46),mat('paper','#203a55'));const a=(i-2)*.16;tail.position.set(a,-.24,0);this.coatTail.add(tail)}
+    const shirt=new THREE.Mesh(new THREE.CylinderGeometry(.2,.25,.54,8),mat('paper','#c18c48'));shirt.position.y=.25;this.body.add(shirt);this.head=new THREE.Group();this.head.position.y=.7;this.body.add(this.head);const face=new THREE.Mesh(new THREE.SphereGeometry(.22,12,9),mat('paper','#cf9875'));this.head.add(face);for(let i=0;i<7;i++){const curl=new THREE.Mesh(new THREE.SphereGeometry(.09,8,6),mat('paper','#4b3023'));curl.position.set((i-3)*.06,.17+(i%2)*.04,.12);this.head.add(curl)}
+    this.left=this.arm(-1,kit);this.right=this.arm(1,kit);this.leftLeg=this.leg(-1,kit);this.rightLeg=this.leg(1,kit);
+    this.satchel=new THREE.Mesh(new THREE.BoxGeometry(.28,.4,.13),mat('wood','#59392c'));this.satchel.position.set(-.35,.12,.25);this.body.add(this.satchel);this.watchAnchor=new THREE.Object3D();this.left.anchor.add(this.watchAnchor);this.keyAnchor=new THREE.Object3D();this.right.anchor.add(this.keyAnchor);this.threadAnchor=new THREE.Object3D();this.right.anchor.add(this.threadAnchor);
+  }
+  arm(side,kit){const shoulder=new THREE.Group();shoulder.position.set(side*.34,.42,0);this.body.add(shoulder);const upper=new THREE.Mesh(new THREE.CapsuleGeometry(.075,.28,3,7),kit.material('paper','#294766'));upper.position.y=-.18;shoulder.add(upper);const elbow=new THREE.Group();elbow.position.y=-.36;shoulder.add(elbow);const fore=new THREE.Mesh(new THREE.CapsuleGeometry(.065,.2,3,7),kit.material('paper','#203a55'));fore.position.y=-.14;elbow.add(fore);const hand=new THREE.Mesh(new THREE.SphereGeometry(.07,8,6),kit.material('paper','#cf9875'));hand.position.y=-.28;elbow.add(hand);const anchor=new THREE.Object3D();anchor.position.set(0,-.34,.08);elbow.add(anchor);return {shoulder,elbow,anchor};}
+  leg(side,kit){const hip=new THREE.Group();hip.position.set(side*.14,-.3,0);this.body.add(hip);const trouser=new THREE.Mesh(new THREE.CapsuleGeometry(.09,.25,3,7),kit.material('paper','#353a46'));trouser.position.y=-.17;hip.add(trouser);const knee=new THREE.Group();knee.position.y=-.34;hip.add(knee);const boot=new THREE.Mesh(new THREE.BoxGeometry(.17,.11,.29),kit.material('wood','#3d302b'));boot.position.set(0,-.12,.08);knee.add(boot);const anchor=new THREE.Object3D();anchor.position.set(0,-.18,.08);knee.add(anchor);return {hip,knee,anchor};}
+  reset(){this.body.rotation.set(0,0,0);this.body.position.y=.94;this.left.shoulder.rotation.set(0,0,.1);this.right.shoulder.rotation.set(0,0,-.1);this.left.elbow.rotation.set(0,0,0);this.right.elbow.rotation.set(0,0,0);this.leftLeg.hip.rotation.set(0,0,0);this.rightLeg.hip.rotation.set(0,0,0);this.leftLeg.knee.rotation.set(0,0,0);this.rightLeg.knee.rotation.set(0,0,0);}
+  setAction(mode,time=0,k=0,force=0){this.reset();const s=Math.sin;
+    if(mode==='walk'||mode==='run'){const f=time*(mode==='run'?7:4),a=mode==='run'?.9:.45;this.leftLeg.hip.rotation.x=-s(f)*a;this.rightLeg.hip.rotation.x=s(f)*a;this.left.shoulder.rotation.x=s(f)*a*.7;this.right.shoulder.rotation.x=-s(f)*a*.7;this.body.rotation.x=mode==='run'?.18:.06;}
+    if(mode==='wind'||mode==='repair'){this.body.rotation.x=.25;this.right.shoulder.rotation.x=-1.4;this.right.elbow.rotation.x=-.7;this.left.shoulder.rotation.x=-.8;}
+    if(mode==='catch'){this.body.rotation.x=.3;this.left.shoulder.rotation.x=-2;this.right.shoulder.rotation.x=-2;}
+    if(mode==='climb'){const f=time*4;this.left.shoulder.rotation.x=-2+s(f)*.4;this.right.shoulder.rotation.x=-2-s(f)*.4;this.leftLeg.hip.rotation.x=-.7-s(f)*.25;this.rightLeg.hip.rotation.x=-.7+s(f)*.25;}
+    if(mode==='watch'||mode==='thread'||mode==='place'){this.body.rotation.x=.2;this.left.shoulder.rotation.x=mode==='watch'?-1.1:-1.65;this.right.shoulder.rotation.x=mode==='watch'?-1:-1.7;}
+    this.coatTail.rotation.x=-.12-force*.45+s(time*3)*(.04+force*.12);this.satchel.rotation.z=s(time*2.2)*(.03+force*.1);
+  }
+}
