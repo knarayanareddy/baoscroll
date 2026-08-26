@@ -1,0 +1,16 @@
+import './style.css';
+import './clockNarration.css';
+import { ClockmakerStoryExperience } from './production/ClockmakerStoryExperience.js';
+import { ClockmakerAudioController } from './production/ClockmakerAudioController.js';
+import { ClockmakerNarrationController } from './production/ClockmakerNarrationController.js';
+import { ClockmakerTransitionController } from './production/ClockmakerTransitionController.js';
+const titles=['The Workshop Wakes','The City Disagrees','The Impossible Gear Tower','The Remembered Hour','The Final Hour','A New Clock Ticks'];
+const beats=['The pocket watch wakes the workshop and folds a route into the city.','Street clocks disagree until one crown is repaired.','Every tooth locks behind the apprentice.','The workshop remembers every hand that made it.','The final hour is released, threaded, and allowed to pass.','The city carries its new rhythm forward.'];
+const exp=new ClockmakerStoryExperience(document.getElementById('clockmaker-canvas'));window.__clockmakerProduction=exp;
+const audio=new ClockmakerAudioController();const narration=new ClockmakerNarrationController(audio);const transitions=new ClockmakerTransitionController();
+const progress=document.getElementById('progress'),title=document.getElementById('title'),beat=document.getElementById('beat'),chapter=document.getElementById('chapter');
+const voice=document.getElementById('clock-voice'),pause=document.getElementById('clock-pause'),read=document.getElementById('clock-read'),dialog=document.getElementById('clock-read');
+voice.addEventListener('click',()=>{const on=voice.getAttribute('aria-pressed')!=='true';voice.setAttribute('aria-pressed',String(on));voice.textContent=on?'Voice on':'Voice';audio.setEnabled(on);narration.setEnabled(on);if(on)narration.update(exp.activeChapter??0);});
+pause.addEventListener('click',()=>{const on=pause.getAttribute('aria-pressed')!=='true';pause.setAttribute('aria-pressed',String(on));pause.textContent=on?'Resume':'Pause';audio.setPaused(on);narration.setPaused(on);});
+read.addEventListener('click',()=>dialog.showModal());document.getElementById('clock-read-close').addEventListener('click',()=>dialog.close());
+let last=performance.now();function frame(now){const max=Math.max(1,document.documentElement.scrollHeight-innerHeight),p=Math.max(0,Math.min(1,scrollY/max)),dt=Math.min(.05,(now-last)/1000);last=now;exp.tick(p,dt);audio.setChapter(exp.activeChapter);narration.update(exp.activeChapter);transitions.update(p);title.textContent=titles[exp.activeChapter];beat.textContent=beats[exp.activeChapter];chapter.textContent=`CHAPTER ${exp.activeChapter+1} — ${titles[exp.activeChapter].toUpperCase()}`;progress.style.transform=`scaleX(${p})`;requestAnimationFrame(frame);}requestAnimationFrame(frame);

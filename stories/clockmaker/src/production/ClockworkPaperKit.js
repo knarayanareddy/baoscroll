@@ -1,0 +1,49 @@
+import * as THREE from 'three';
+
+const PAINTED_URLS = {
+  paper: new URL('../../assets/blueprint-paper.webp', import.meta.url).href,
+  brass: new URL('../../assets/brass-base.webp', import.meta.url).href,
+  enamel: new URL('../../assets/enamel-base.webp', import.meta.url).href,
+  time: new URL('../../assets/time-fracture-noise.webp', import.meta.url).href,
+  tools: new URL('../../assets/tool-atlas.webp', import.meta.url).href,
+  city: new URL('../../assets/city-roof-window-atlas.webp', import.meta.url).href,
+  clock: new URL('../../assets/clock-face-atlas.webp', import.meta.url).href,
+  brassScratch: new URL('../../assets/brass-scratch-mask.webp', import.meta.url).href,
+  brassStrike: new URL('../../assets/brass-strike-glow-mask.webp', import.meta.url).href,
+  enamelHeal: new URL('../../assets/enamel-heal-mask.webp', import.meta.url).href,
+  blueprintTear: new URL('../../assets/blueprint-tear-mask.webp', import.meta.url).href,
+  blueprintRoute: new URL('../../assets/blueprint-route-mask.webp', import.meta.url).href,
+  numeral: new URL('../../assets/clock-numeral-mask.webp', import.meta.url).href,
+  clockShadow: new URL('../../assets/clock-shadow-mask.webp', import.meta.url).href,
+  gearWear: new URL('../../assets/gear-pendulum-wear-mask.webp', import.meta.url).href,
+  oil: new URL('../../assets/oil-stain-mask.webp', import.meta.url).href,
+  dust: new URL('../../assets/clockwork-dust.webp', import.meta.url).href
+};
+
+// Production vocabulary for Clockmaker. This replaces the Phase 2 blockout
+// kit. Every object is built from the same blueprint paper, worn brass,
+// enamel, walnut, and red-thread materials.
+function paintedTexture(kind) {
+  const c=document.createElement('canvas');c.width=c.height=512;const x=c.getContext('2d');
+  if(kind==='paper'){x.fillStyle='#ece0c4';x.fillRect(0,0,512,512);for(let i=0;i<1100;i++){const px=(i*67)%512,py=(i*113)%512;x.strokeStyle=`rgba(91,75,54,${.025+(i%5)*.01})`;x.beginPath();x.moveTo(px,py);x.lineTo(px+7+(i%17),py+(i%5)-2);x.stroke();}}
+  if(kind==='brass'){x.fillStyle='#b98942';x.fillRect(0,0,512,512);for(let i=0;i<500;i++){const px=(i*43)%512,py=(i*97)%512,r=3+(i%19);const g=x.createRadialGradient(px,py,0,px,py,r);g.addColorStop(0,i%4?'rgba(255,225,149,.18)':'rgba(67,111,90,.22)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(px-r,py-r,r*2,r*2);}}
+  if(kind==='enamel'){x.fillStyle='#eee1bd';x.fillRect(0,0,512,512);x.strokeStyle='rgba(105,82,58,.12)';for(let i=0;i<30;i++){x.beginPath();x.moveTo((i*47)%512,0);x.lineTo((i*91)%512,512);x.stroke();}}
+  if(kind==='wood'){x.fillStyle='#694a38';x.fillRect(0,0,512,512);for(let i=0;i<180;i++){const y=(i*19)%512;x.strokeStyle=`rgba(35,23,17,${.05+(i%4)*.03})`;x.beginPath();x.moveTo(0,y);x.bezierCurveTo(120,y+(i%13)-6,330,y-(i%9)+4,512,y);x.stroke();}}
+  const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(2,2);return tex;
+}
+
+export class ClockworkPaperKit {
+  constructor(){this.textures={paper:paintedTexture('paper'),brass:paintedTexture('brass'),enamel:paintedTexture('enamel'),wood:paintedTexture('wood')};this.materialCache=new Map();this.geometryCache=new Map();this._loadPaintedAssets();}
+  _loadPaintedAssets(){const loader=new THREE.TextureLoader();for(const [kind,url] of Object.entries(PAINTED_URLS)){loader.load(url,(texture)=>{texture.colorSpace=THREE.SRGBColorSpace;texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.repeat.set(kind==='city'||kind==='clock'||kind==='tools'?1:2,kind==='city'||kind==='clock'||kind==='tools'?1:2);this.textures[kind]=texture;this.materialCache.forEach(material=>{if(material.userData.textureKind===kind){material.map=texture;material.needsUpdate=true;}});});}}
+  material(kind,color,{opacity=1,emissive=null,side=THREE.FrontSide}={}){const key=`${kind}:${color}:${opacity}:${emissive||''}:${side}`;if(!this.materialCache.has(key)){const textureKind=this.textures[kind]?kind:'paper';const base={map:this.textures[textureKind],color,transparent:opacity<1,opacity,side,depthWrite:opacity>=1,flatShading:true};if(kind==='brass')base.emissive=emissive||'#271807';const material=new THREE.MeshLambertMaterial(base);material.userData.textureKind=textureKind;this.materialCache.set(key,material);}return this.materialCache.get(key);}
+  geo(key,make){if(!this.geometryCache.has(key))this.geometryCache.set(key,make());return this.geometryCache.get(key);}
+  asset(key){return this.textures[key] || this.textures.paper;}
+  gear({teeth=20,radius=1,depth=.22,color='#b98942',spokes=5}={}){const root=new THREE.Group();const hub=new THREE.Mesh(this.geo(`hub:${radius}:${depth}`,()=>new THREE.CylinderGeometry(radius*.18,radius*.18,depth*1.35,12)),this.material('brass','#805a2b'));hub.rotation.x=Math.PI/2;root.add(hub);const rim=new THREE.Mesh(this.geo(`rim:${radius}:${depth}`,()=>new THREE.TorusGeometry(radius*.78,depth*.22,8,32)),this.material('brass',color));rim.rotation.x=Math.PI/2;root.add(rim);for(let i=0;i<spokes;i++){const a=i/spokes*Math.PI*2;const spoke=new THREE.Mesh(new THREE.BoxGeometry(radius*.72,.09,depth),this.material('brass',color));spoke.position.set(Math.cos(a)*radius*.36,Math.sin(a)*radius*.36,0);spoke.rotation.z=a;root.add(spoke);}for(let i=0;i<teeth;i++){const a=i/teeth*Math.PI*2;const tooth=new THREE.Mesh(new THREE.BoxGeometry(radius*.2,radius*.12,depth*1.12),this.material('brass',color));tooth.position.set(Math.cos(a)*radius,Math.sin(a)*radius,0);tooth.rotation.z=a;root.add(tooth);}root.userData={radius,teeth,material:'brass'};return root;}
+  clockFace({radius=1.5,face='#eee1bd',hand='#b33432'}={}){const root=new THREE.Group();const dial=new THREE.Mesh(this.geo(`dial:${radius}`,()=>new THREE.CircleGeometry(radius,48)),this.material('enamel',face));root.add(dial);const rim=new THREE.Mesh(this.geo(`dialRim:${radius}`,()=>new THREE.TorusGeometry(radius,.055,8,48)),this.material('brass','#a87b37'));root.add(rim);for(let i=0;i<12;i++){const a=i/12*Math.PI*2;const mark=new THREE.Mesh(new THREE.BoxGeometry(.035,radius*.15,.02),this.material('paper','#292b34'));mark.position.set(Math.sin(a)*radius*.78,Math.cos(a)*radius*.78,.03);mark.rotation.z=-a;root.add(mark);}const minute=new THREE.Group(),hour=new THREE.Group();const minNode=new THREE.Mesh(new THREE.BoxGeometry(.055,radius*.74,.04),this.material('brass',hand));minNode.position.y=radius*.37;minute.add(minNode);minute.position.z=.07;const hourNode=new THREE.Mesh(new THREE.BoxGeometry(.07,radius*.5,.05),this.material('brass','#79552c'));hourNode.position.y=radius*.25;hour.add(hourNode);hour.position.z=.09;root.add(minute,hour);root.userData={minute,hour,dial};return root;}
+  pendulum({length=5}={}){const root=new THREE.Group();const rod=new THREE.Mesh(new THREE.BoxGeometry(.08,length,.08),this.material('brass','#a87b37'));rod.position.y=-length/2;root.add(rod);const bob=new THREE.Mesh(new THREE.SphereGeometry(.36,16,12),this.material('brass','#c79a4e'));bob.position.y=-length;root.add(bob);const grip=new THREE.Object3D();grip.position.set(.16,-length*.55,.1);root.add(grip);const gripLeft=new THREE.Object3D();gripLeft.position.set(-.16,-length*.55,.1);root.add(gripLeft);root.userData.grip=grip;root.userData.gripLeft=gripLeft;return root;}
+  blueprint({width=4,height=3}={}){const c=document.createElement('canvas');c.width=640;c.height=480;const x=c.getContext('2d');x.fillStyle='#eae0c6';x.fillRect(0,0,640,480);x.strokeStyle='rgba(38,70,102,.48)';x.lineWidth=1;for(let i=30;i<640;i+=48){x.beginPath();x.moveTo(i,0);x.lineTo(i,480);x.stroke()}for(let i=30;i<480;i+=42){x.beginPath();x.moveTo(0,i);x.lineTo(640,i);x.stroke()}x.lineWidth=4;x.strokeStyle='#355875';x.beginPath();x.arc(320,240,105,0,Math.PI*2);x.stroke();x.strokeRect(175,95,290,290);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return new THREE.Mesh(new THREE.PlaneGeometry(width,height),new THREE.MeshBasicMaterial({map:t,side:THREE.DoubleSide}));}
+  redThread(points){const curve=new THREE.CatmullRomCurve3(points);return new THREE.Mesh(new THREE.TubeGeometry(curve,64,.025,6,false),this.material('brass','#b33432'));}
+  workbench(){const root=new THREE.Group();const top=new THREE.Mesh(new THREE.BoxGeometry(6,.18,2.7),this.material('wood','#694a38'));top.position.y=1.1;root.add(top);for(const [x,z]of [[-2.5,-1],[2.5,-1],[-2.5,1],[2.5,1]]){const leg=new THREE.Mesh(new THREE.BoxGeometry(.16,1.1,.16),this.material('wood','#3e2a22'));leg.position.set(x,.55,z);root.add(leg)}return root;}
+  miniatureBuilding({w=1.2,h=1,d=1}={}){const root=new THREE.Group();const body=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),this.material('paper','#d5c7aa'));body.position.y=h/2;root.add(body);const roof=new THREE.Mesh(new THREE.ConeGeometry(w*.82,.55,4),this.material('brass','#6f5544'));roof.position.y=h+.22;roof.rotation.y=Math.PI/4;root.add(roof);return root;}
+  train(){const root=new THREE.Group();const body=new THREE.Mesh(new THREE.BoxGeometry(1.5,.48,.55),this.material('brass','#b98942'));body.position.y=.35;root.add(body);for(const x of [-.48,.48]){const wheel=new THREE.Mesh(new THREE.TorusGeometry(.16,.04,6,12),this.material('brass','#654a2d'));wheel.position.set(x,.16,.3);wheel.rotation.x=Math.PI/2;root.add(wheel)}return root;}
+}

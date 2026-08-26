@@ -1,0 +1,26 @@
+{
+  "low": {
+    "0": { "drawCalls": 850, "triangles": 220000, "particles": 64 },
+    "1": { "drawCalls": 950, "triangles": 240000, "particles": 74 },
+    "2": { "drawCalls": 1100, "triangles": 280000, "particles": 90 },
+    "3": { "drawCalls": 1050, "triangles": 270000, "particles": 80 },
+    "4": { "drawCalls": 1100, "triangles": 280000, "particles": 88 },
+    "5": { "drawCalls": 1000, "triangles": 250000, "particles": 74 }
+  },
+  "medium": {
+    "0": { "drawCalls": 1200, "triangles": 360000, "particles": 112 },
+    "1": { "drawCalls": 1350, "triangles": 390000, "particles": 130 },
+    "2": { "drawCalls": 1550, "triangles": 450000, "particles": 160 },
+    "3": { "drawCalls": 1480, "triangles": 430000, "particles": 145 },
+    "4": { "drawCalls": 1550, "triangles": 450000, "particles": 155 },
+    "5": { "drawCalls": 1400, "triangles": 410000, "particles": 130 }
+  },
+  "high": {
+    "0": { "drawCalls": 1700, "triangles": 540000, "particles": 170 },
+    "1": { "drawCalls": 1900, "triangles": 590000, "particles": 200 },
+    "2": { "drawCalls": 2200, "triangles": 680000, "particles": 250 },
+    "3": { "drawCalls": 2100, "triangles": 640000, "particles": 220 },
+    "4": { "drawCalls": 2200, "triangles": 680000, "particles": 240 },
+    "5": { "drawCalls": 1950, "triangles": 600000, "particles": 200 }
+  }
+}

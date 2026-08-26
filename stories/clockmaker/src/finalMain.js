@@ -1,0 +1,5 @@
+import './style.css';
+import { ClockmakerExperience } from './ClockmakerExperience.js';
+import { FinalHourScene } from './FinalHourScene.js';
+const experience=new ClockmakerExperience(document.getElementById('clockmaker-canvas'),FinalHourScene);window.__clockmaker=experience;
+const progress=document.getElementById('progress'),beat=document.getElementById('beat');const lines=[[0,'The master clock waits without asking to be saved.'],[.3,'The apprentice releases the sealed hand.'],[.52,'Red thread becomes the minute hand no one else could make.'],[.78,'The final hour passes. A new clock begins.']];let last=performance.now();function frame(now){const max=Math.max(1,document.documentElement.scrollHeight-window.innerHeight),p=clamp(window.scrollY/max),dt=Math.min(.05,(now-last)/1000);last=now;experience.tick(p,dt);progress.style.transform=`scaleX(${p})`;let text=lines[0][1];for(const [at,line]of lines)if(p>=at)text=line;beat.textContent=text;requestAnimationFrame(frame);}const clamp=v=>Math.max(0,Math.min(1,v));requestAnimationFrame(frame);

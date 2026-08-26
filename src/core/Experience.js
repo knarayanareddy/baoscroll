@@ -11,6 +11,7 @@ import { Renderer } from './Renderer.js';
 import { Camera } from './Camera.js';
 import { ScrollController } from './ScrollController.js';
 import { AudioController } from './AudioController.js';
+import { NarrationController } from './NarrationController.js';
 
 import { InkSpreadEffect } from '../effects/InkSpreadEffect.js';
 import { WatercolorEffect } from '../effects/WatercolorEffect.js';
@@ -50,6 +51,7 @@ export class Experience {
     this.raycaster = new THREE.Raycaster();
     this.cursorHot = false;
     this.onChapterChange = null;
+    this._idlePreloads = new Set();
     this._rayDir = new THREE.Vector3();
     this._skyColor = new THREE.Color();
   }
@@ -97,6 +99,7 @@ export class Experience {
     this.scroll = new ScrollController(this.sections);
     if (this.reducedMotion) this.scroll.setGentle(true);
     this.audio = new AudioController();
+    this.narration = new NarrationController(this.audio);
     this.ink = new InkSpreadEffect();
     this.wash = new WatercolorEffect();
     this.transition = new TransitionManager(this);
@@ -169,9 +172,18 @@ export class Experience {
       if (this.onChapterChange) this.onChapterChange(index);
     }
     this.chapterLocal = local;
+    this.narration.update(index, local);
 
-    // lazy-build the neighbourhood
+    // Lazy-build the active chapter, then use idle time to amortize the next
+    // chapter's construction before its transition can enter the viewport.
     this.scenes[index].ensure();
+    if (index < 5 && local > 0.38 && !this._idlePreloads.has(index + 1)) {
+      this._idlePreloads.add(index + 1);
+      const preload = () => this.scenes[index + 1].ensure();
+      if ('requestIdleCallback' in window) window.requestIdleCallback(preload, { timeout: 1200 });
+      else setTimeout(preload, 0);
+    }
+    // Fast scrolls bypass idle time; retain this synchronous safety net.
     if (index < 5 && local > 0.7) this.scenes[index + 1].ensure();
 
     this.scenes.forEach((s, i) => s.setVisible(i === index));
@@ -205,6 +217,7 @@ export class Experience {
   setPaused(v) {
     this.paused = v;
     this.audio.setPaused(v);
+    this.narration.setPaused(v);
   }
 
   setReducedMotion(v) {

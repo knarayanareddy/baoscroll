@@ -40,6 +40,10 @@ export class AssetLoader {
     return t;
   }
 
+  has(name) {
+    return this.cache.has(name);
+  }
+
   store(name, canvasEl, { srgb = true, repeat = false } = {}) {
     const tex = new THREE.CanvasTexture(canvasEl);
     if (srgb) tex.colorSpace = THREE.SRGBColorSpace;
@@ -68,10 +72,37 @@ export class AssetLoader {
     ];
     for (let i = 0; i < tasks.length; i++) {
       tasks[i]();
-      onProgress((i + 1) / tasks.length);
+      onProgress((i + 1) / (tasks.length + 1));
       // yield so the lamp loader keeps animating
       await new Promise((r) => setTimeout(r, 16));
     }
+    // Painted production surfaces replace the procedural stand-ins when
+    // present; procedural assets remain an offline/failure-safe fallback.
+    await this.loadProductionSurfaces();
+    onProgress(1);
+  }
+
+  async loadProductionSurfaces() {
+    const loader = new THREE.TextureLoader();
+    const surfaces = [
+      ['paper', './textures/paper-painted.png', true],
+      ['plank', './textures/timber-painted.png', true],
+      ['brass', './textures/brass-painted.png', true],
+      ['sailMask', './textures/torn-sail-mask.png', false],
+      ['stormWash', './textures/storm-wash-painted.png', false]
+    ];
+    await Promise.all(surfaces.map(async ([name, url, repeat]) => {
+      try {
+        const tex = await loader.loadAsync(url);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = 4;
+        if (repeat) tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        this.cache.set(name, tex);
+      } catch {
+        // Keep procedural material for paper/plank/brass. Optional masks are
+        // simply absent on a constrained/offline host.
+      }
+    }));
   }
 
   // Cotton rag that has lived by the sea: warm fibre, cool salt bloom.

@@ -44,6 +44,9 @@ export class WreckMemoriesScene extends BaseScene {
     const rnd = mulberry32(71);
     this._dummy = new THREE.Object3D();
     this._v = new THREE.Vector3();
+    this._memoryHand = new THREE.Vector3();
+    this._memoryCore = new THREE.Vector3();
+    this._memoryContactDelta = new THREE.Vector3();
 
     /* ---- the ceiling of the world: the surface, seen from beneath ---- */
     this.surface = new THREE.Mesh(
@@ -151,12 +154,20 @@ export class WreckMemoriesScene extends BaseScene {
     mast.position.set(-0.6, 2.4, 0);
     mast.rotation.z = -0.62;
     this.wreck.add(mast);
+    // Torn-sail alpha art is loaded through AssetLoader; the original paper
+    // material remains the intentional fallback if a constrained host misses it.
+    const sailMat = this.experience.assets.has('sailMask')
+      ? new THREE.MeshLambertMaterial({
+          map: this.experience.assets.get('paper'), alphaMap: this.experience.assets.get('sailMask'),
+          color: '#c9bda1', transparent: true, opacity: 0.86, side: THREE.DoubleSide, depthWrite: false
+        })
+      : kit.paperMat('#c9bda1', { lit: true, side: THREE.DoubleSide, opacity: 0.82 });
     // torn sails: paper planes with ragged, drifting corners
     this.sails = [];
     for (let i = 0; i < 3; i++) {
       const sail = new THREE.Mesh(
         new THREE.PlaneGeometry(2.4 - i * 0.5, 2.9 - i * 0.6, 5, 5),
-        kit.paperMat('#c9bda1', { lit: true, side: THREE.DoubleSide, opacity: 0.82 })
+        sailMat.clone()
       );
       sail.position.set(-1.9 + i * 1.5, 2.2 + i * 0.9, (i % 2 ? 0.5 : -0.5));
       sail.rotation.set(0.2, i * 0.6, -0.5);
@@ -413,6 +424,14 @@ export class WreckMemoriesScene extends BaseScene {
     this.hero.rim.material.opacity = 0.3 * (1 - taken);
     this.hero.card.position.set(0, taken * 0.5, taken * 0.6);
     this.hero.card.scale.setScalar(0.42 + taken * 0.24);
+    if (retrieve > 0.02) {
+      this.hero.node.updateMatrixWorld(true);
+      k.group.updateMatrixWorld(true);
+      this.hero.glyph.getWorldPosition(this._memoryCore);
+      k.handR.getWorldPosition(this._memoryHand);
+      this._memoryContactDelta.subVectors(this._memoryCore, this._memoryHand);
+      k.group.position.add(this._memoryContactDelta);
+    }
 
     /* ---- the living things ---- */
     this.jellies.forEach((j) => {

@@ -201,6 +201,9 @@ export class FirstNameScene extends BaseScene {
 
     this.fog = new THREE.Fog(new THREE.Color(P.fog), 9, 40);
     this._reach = new THREE.Vector3();
+    this._bookHand = new THREE.Vector3();
+    this._bookAnchor = new THREE.Vector3();
+    this._bookContactDelta = new THREE.Vector3();
   }
 
   update(p, time, dt) {
@@ -234,8 +237,15 @@ export class FirstNameScene extends BaseScene {
       k.group.position.set(0.62, 0, 2.15);
       k.group.rotation.y = Math.PI - 0.28;
       k.setPose('reach', time, reach);
-      // the hand goes exactly where the ink is leaving
-      this._reach.set(-0.44, 1.35, 1.12);
+      // The reaching hand is constrained to the book's actual name anchor,
+      // so the erasure is being resisted rather than merely gestured at.
+      this.book.root.updateMatrixWorld(true);
+      k.group.updateMatrixWorld(true);
+      this.book.nameAnchor.getWorldPosition(this._bookAnchor);
+      k.handR.getWorldPosition(this._bookHand);
+      this._bookContactDelta.subVectors(this._bookAnchor, this._bookHand);
+      k.group.position.add(this._bookContactDelta);
+      this._reach.copy(this._bookAnchor);
     } else {
       k.group.position.set(0.55, 0, 2.34);
       k.group.rotation.y = Math.PI - 0.2;

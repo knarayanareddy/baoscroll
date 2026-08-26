@@ -1,0 +1,44 @@
+name: Clockmaker production QA
+
+on:
+  pull_request:
+    paths:
+      - 'stories/clockmaker/**'
+      - 'scripts/clockmaker-production-*.mjs'
+      - 'package*.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx puppeteer browsers install chrome
+      - run: |
+          npm run preview -- --host 127.0.0.1 > /tmp/clockmaker-preview.log 2>&1 &
+          for i in {1..30}; do curl -fsS http://127.0.0.1:4173/stories/clockmaker/production/ > /dev/null && break; sleep 1; done
+      - run: |
+          CLOCKMAKER_QUALITY=low npm run clockmaker:workshop
+          CLOCKMAKER_QUALITY=low npm run clockmaker:city
+          CLOCKMAKER_QUALITY=low npm run clockmaker:tower
+          CLOCKMAKER_QUALITY=low npm run clockmaker:memory
+          CLOCKMAKER_QUALITY=low npm run clockmaker:final
+          CLOCKMAKER_QUALITY=low npm run clockmaker:dawn
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: clockmaker-candidates-and-diffs
+          path: |
+            stories/clockmaker/visual-baselines/candidates/
+            artifacts/clockmaker-visual-diff/
+          if-no-files-found: warn
+          retention-days: 30
