@@ -12,6 +12,7 @@ import { PlaceholderScene } from './src/scenes/PlaceholderScene.js';
 import { ThunderOrchardScene } from './src/scenes/ThunderOrchardScene.js';
 import { WindMazeScene } from './src/scenes/WindMazeScene.js';
 import { FirstSeedScene } from './src/scenes/FirstSeedScene.js';
+import { DryCloudNurseryScene } from './src/scenes/DryCloudNurseryScene.js';
 import { SunTerraceScene } from './src/scenes/SunTerraceScene.js';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -19,7 +20,7 @@ const $ = (id) => document.getElementById(id);
 
 // Phase 5 replaces placeholders in plan order: III -> V -> II -> I -> VI.
 const SCENES = [
-  PlaceholderScene,      // I  Dry Cloud Nursery   (placeholder)
+  DryCloudNurseryScene,  // I  Dry Cloud Nursery    (Phase 5 — built)
   FirstSeedScene,        // II First Seed          (Phase 5 — built)
   WindMazeScene,         // III Wind Maze          (Phase 5 — built)
   ThunderOrchardScene,   // IV Thunder Orchard     (Phase 3 benchmark — mounted)
