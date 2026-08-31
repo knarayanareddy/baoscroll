@@ -162,8 +162,8 @@ export class ThunderOrchardScene extends BaseScene {
     const phase4 = win(local, 0.78, 1);
     cam.position.set(
       lerp(-3.5, 1.4, phase2) + lerp(0, -1.8, phase4),
-      lerp(0.6, 2.6, phase2) + lerp(0, 1.6, phase4) + phase3 * 0.4,
-      lerp(6.5, 3.2, phase2) - phase4 * 0.6
+      lerp(1.1, 3.4, phase2) + lerp(0, 2.2, phase4) + phase3 * 0.4,
+      lerp(9.0, 4.6, phase2) - phase4 * 0.6
     );
     const look = new THREE.Vector3(
       lerp(-1, 1.2, phase2),

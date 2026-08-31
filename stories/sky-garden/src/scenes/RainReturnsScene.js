@@ -241,7 +241,7 @@ export class RainReturnsScene extends BaseScene {
     cam.position.set(
       lerp(-0.9, 0, valveT) + lerp(0, 2.5, awayT),
       lerp(2.1, 3.4, valveT) + lerp(0, 6.5, layersT) + awayT * 3,
-      lerp(2.6, 2.2, valveT) + lerp(0, 3.5, layersT) + awayT * 9
+      lerp(2.6, 2.2, valveT) + lerp(0, 3.5, layersT) + awayT * 11
     );
     cam.lookAt(
       lerp(-1.4, 0, valveT),

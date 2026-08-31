@@ -27,6 +27,7 @@
     .controls button[aria-pressed="true"] { background: rgba(95, 147, 184, 0.25); border-color: #5f93b8; }
     #sg-caption { position: fixed; left: 50%; bottom: 5rem; transform: translateX(-50%) translateY(8px); max-width: min(44rem, 86vw); margin: 0; padding: 0.55rem 1.1rem; text-align: center; font: italic 1.02rem/1.5 Georgia, serif; color: #2a3440; background: rgba(244, 239, 226, 0.94); border: 1px solid rgba(58, 68, 80, 0.28); border-radius: 4px 14px 4px 14px; opacity: 0; pointer-events: none; transition: opacity 0.35s ease, transform 0.35s ease; z-index: 7; }
     #sg-caption.active { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #sg-beat { position: fixed; left: 1rem; bottom: 1.2rem; max-width: 26rem; margin: 0; font: italic 0.82rem/1.4 Georgia, serif; color: #2a3440; background: rgba(244, 239, 226, 0.82); border: 1px solid rgba(58, 68, 80, 0.22); border-radius: 3px 10px 3px 10px; padding: 0.4rem 0.7rem; opacity: 0.9; z-index: 5; pointer-events: none; }
     .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     #loader { position: fixed; inset: 0; z-index: 20; display: grid; place-content: center; background: #dfe8ee; transition: opacity 0.6s ease; }
     #loader.done { opacity: 0; pointer-events: none; }
@@ -66,6 +67,7 @@
     <section data-chapter="4" id="sg-chapter-sun"><h2>Chapter 5 — The Garden Meets the Sun</h2><div class="card"><p class="numeral">V</p><h1>The Garden Meets the Sun</h1><p>Ask the sky to soften</p></div></section>
     <section data-chapter="5" id="sg-chapter-rain"><h2>Chapter 6 — Rain Returns</h2><div class="card"><p class="numeral">VI</p><h1>Rain Returns</h1><p>Let the world drink</p></div></section>
   </main>
+  <p id="sg-beat" aria-hidden="true"></p>
   <div id="progress"><span id="progress-fill"></span></div>
   <p id="sg-caption" aria-hidden="true"></p>
   <p class="visually-hidden" aria-live="polite" id="sg-live"></p>

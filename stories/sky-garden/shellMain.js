@@ -37,7 +37,9 @@ async function boot() {
     return;
   }
   const sections = CHAPTERS.map((c) => document.querySelector(`section[data-chapter="${c.index}"]`));
-  sections.forEach((s, i) => { s.style.height = '160vh'; }); // 6 sections, scroll track
+  // 400vh per chapter: a full chapter is ~3.7 viewports of scroll, so the
+  // story is a journey, not a flick (the transition bands below key off total)
+  sections.forEach((s, i) => { s.style.height = '400vh'; }); // 6 sections, scroll track
 
   const experience = new ShellExperience({ canvas: $('webgl'), sections });
   experience.registerScenes(SCENES);
@@ -57,8 +59,18 @@ async function boot() {
   };
 
   const fill = $('progress-fill');
+  const beat = $('sg-beat');
   gsap.ticker.add(() => {
     fill.style.transform = `scaleX(${experience.global || 0})`;
+    // host contract: update narration from the render tick (keeps
+    // currentChapter fresh even before any boundary event)
+    narration.update(experience.activeChapter, experience.local);
+    // beat ticker: the current story beat, always readable
+    const c = CHAPTERS[experience.activeChapter];
+    if (c && beat) {
+      const b = c.beats.find(([a, b2]) => experience.local >= a && experience.local < b2);
+      beat.textContent = b ? `${c.numeral} · ${b[2]}` : '';
+    }
   });
 
   // ---- controls ----
@@ -85,13 +97,6 @@ async function boot() {
   const readDlg = $('sg-read');
   $('btn-read').addEventListener('click', () => readDlg.showModal());
   $('sg-read-close').addEventListener('click', () => readDlg.close());
-
-  // narration follows chapter changes (chapter-addressed cues)
-  const origChange = experience.onChapterChange;
-  experience.onChapterChange = (i) => {
-    origChange(i);
-    narration.update(i, experience.local);
-  };
 
   // ---- smoke hooks (scene-logic + browser smoke) ----
   window.__skyGarden = {

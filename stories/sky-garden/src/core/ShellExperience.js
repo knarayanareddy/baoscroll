@@ -41,7 +41,7 @@ export class ShellExperience {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.scene = new THREE.Scene();
     this.scene.fog = new THREE.Fog(new THREE.Color('#dfe8ee'), 8, 42);
-    this.camera = new THREE.PerspectiveCamera(46, 1, 0.1, 120);
+    this.camera = new THREE.PerspectiveCamera(56, 1, 0.1, 120); // wider FOV: chapters must read, not peek
     this._resize();
     window.addEventListener('resize', () => this._resize());
 
@@ -250,7 +250,7 @@ export class ShellExperience {
     for (let i = 0; i < n - 1; i++) {
       const boundary = (i + 1) / n;
       const d = g - boundary;
-      if (Math.abs(d) < 0.05) { bp = 1 - Math.abs(d) / 0.05; idx = i; break; }
+      if (Math.abs(d) < 0.045) { bp = 1 - Math.abs(d) / 0.045; idx = i; break; } // ~1 viewport of scroll for the full wipe at 400vh sections
     }
     const wipeY = () => -1.2 + Math.sin((this._bp || 0) * Math.PI) * 1.15;
     if (idx >= 0 && bp > 0.001) {

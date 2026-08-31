@@ -178,7 +178,7 @@ export class WindMazeScene extends BaseScene {
     // lateral tracking dolly: follows the gardener, pulls wide at the gate
     const gx = lerp(ISLANDS[0].x, ISLANDS[4].x, win(local, 0.2, 0.85));
     const wide = win(local, 0.8, 1);
-    cam.position.set(gx + 0.6 - wide * 1.6, 1.7 + wide * 0.9, 5.4 - wide * 1.2);
+    cam.position.set(gx + 0.6 - wide * 1.6, 2.3 + wide * 0.9, 7.2 - wide * 1.2);
     cam.lookAt(gx + wide * 2.2, 1.0, 0);
   }
 }

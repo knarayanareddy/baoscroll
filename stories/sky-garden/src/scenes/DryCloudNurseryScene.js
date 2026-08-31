@@ -249,8 +249,8 @@ export class DryCloudNurseryScene extends BaseScene {
     const edgeT = win(local, 0.78, 1);
     cam.position.set(
       lerp(-2.6, -0.6, walkT) + lerp(0, 0.5, satchelT) + lerp(0, 1.4, waterT) + lerp(0, 2.6, edgeT),
-      lerp(0.9, 1.1, walkT) + lerp(0, 0.5, edgeT),
-      lerp(3.4, 3.0, walkT) - waterT * 1.1 + lerp(0, 0.6, edgeT)
+      lerp(1.5, 1.8, walkT) + lerp(0, 0.8, edgeT),
+      lerp(5.2, 4.8, walkT) - waterT * 1.1 + lerp(0, 1.2, edgeT)
     );
     const lookX = lerp(-1.2, 0.1, walkT) + lerp(0, 0.1, satchelT) + lerp(0, 1.8, edgeT);
     const lookY = lerp(-0.1, -0.28, walkT) - edgeT * 0.05;

@@ -49,17 +49,51 @@ export class NarrationController {
     this.narratedChapter = chapter;
     this.played.add(cue.id);
     this.setCaption(cue.caption, true);
-    // audio is optional: clips land with the Phase 6 audio pass; until
-    // then the caption + live region carry the narration
+    // voice: clips ride a gesture-resumed AudioContext (via a media
+    // element source) so the line plays even where cross-origin preview
+    // iframes block plain <audio> playback — the same policy class as the
+    // ambience, which is proven to work in the preview
     if (cue.file && this.basePath) {
       const el = new Audio(`${this.basePath}/${cue.file}`);
+      el.preload = 'auto';
       el.volume = 0.92;
+      const ctx = this._ensureCtx();
+      if (ctx) {
+        try {
+          if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+          const node = ctx.createMediaElementSource(el);
+          node.connect(ctx.destination);
+          this._node = node;
+        } catch (e) {
+          // fall back to direct element playback (some hosts forbid
+          // media element sources); the error path below still surfaces
+        }
+      }
       this.active = el;
       el.addEventListener('ended', () => this.finish());
-      el.addEventListener('error', () => this.finish());
+      el.addEventListener('error', () => this.fail('narration clip failed to load'));
       this.ambience?.setNarrationDuck(true);
-      el.play().catch(() => this.finish());
+      el.play().catch((err) => this.fail(`narration blocked (${err ? err.name : 'unknown'})`));
     }
+  }
+
+  _ensureCtx() {
+    if (this._ctx) return this._ctx;
+    const Ctx = (typeof window !== 'undefined') && (window.AudioContext || window.webkitAudioContext);
+    if (!Ctx) return null;
+    try { this._ctx = new Ctx(); } catch { return null; }
+    return this._ctx;
+  }
+
+  // visible failure: the caption shows what went wrong (and console)
+  // instead of the button silently doing nothing
+  fail(msg) {
+    console.warn('[sky-garden narration]', msg);
+    if (this.active) { this.active.pause(); this.active = null; }
+    this.ambience?.setNarrationDuck(false);
+    this.setCaption(msg, true);
+    clearTimeout(this._failTimer);
+    this._failTimer = setTimeout(() => this.setCaption('', false), 4000);
   }
 
   finish() {

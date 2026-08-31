@@ -192,8 +192,8 @@ export class SunTerraceScene extends BaseScene {
     const bloomT = win(local, 0.82, 1);
     cam.position.set(
       lerp(-3.2, 1.6, contactT) - bloomT * 1.2,
-      lerp(3.4, 0.6, contactT) + bloomT * 1.6,
-      lerp(6.2, 3.4, contactT) + bloomT * 2.2
+      lerp(4.4, 1.1, contactT) + bloomT * 1.6,
+      lerp(8.6, 5.2, contactT) + bloomT * 2.2
     );
     cam.lookAt(lerp(-1, 0.6, approachT + contactT * 0.5), lerp(0.2, -0.4, contactT) + bloomT * 0.6, -0.5 + bloomT * 1.2);
   }
