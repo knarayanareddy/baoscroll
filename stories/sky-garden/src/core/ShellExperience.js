@@ -151,7 +151,6 @@ export class ShellExperience {
     }
     this._transitionTick();
     this.renderer.render(this.scene, this.camera);
-    this.renderTransitionPass(this.renderer);
     this._velocity = (this._velocity || 0) * Math.max(0, 1 - dt * 3);
     // smoke hook: per-frame counters
     this._drawCalls = this.renderer.info.render.calls;
@@ -173,10 +172,11 @@ export class ShellExperience {
       x.fillStyle = `rgba(150, 135, 110, ${0.02 + (i % 5) * 0.008})`;
       x.fillRect((i * 61) % 512, (i * 97) % 256, 1 + (i % 2), 1);
     }
-    // soft cloud lobes along the bottom edge
+    // soft cloud lobes along the TOP edge — the leading edge both when the
+    // bank rises over the old chapter and falls to reveal the new one
     for (let i = 0; i <= 24; i++) {
       const cx = i * 22;
-      const cy = 256 - ((i * 13) % 10);
+      const cy = (i * 13) % 10;
       const r = 30 + ((i * 37) % 18);
       const g = x.createRadialGradient(cx, cy, r * 0.25, cx, cy, r);
       g.addColorStop(0, 'rgba(240, 233, 218, 1)');
@@ -187,34 +187,47 @@ export class ShellExperience {
     }
     const paperTex = new THREE.CanvasTexture(c);
     paperTex.colorSpace = THREE.SRGBColorSpace;
-    this._transScene = new THREE.Scene();
-    this._transCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 10);
+    // SCREEN-SPACE OVERLAY: the wipe + motifs are children of the camera
+    // (no depth test, high render order) so they composite over the story
+    // in the SAME render pass. A second render pass would clear the canvas
+    // to black first — which is how the old transition showed a black
+    // screen with cream hill silhouettes.
+    this._transGroup = new THREE.Group();
+    this._transGroup.visible = false;
+    const overlayMat = (opts) => new THREE.MeshBasicMaterial(Object.assign({ transparent: true, depthTest: false }, opts));
     this._wipe = new THREE.Mesh(
       new THREE.PlaneGeometry(2, 2),
-      new THREE.MeshBasicMaterial({ map: paperTex, transparent: true, side: THREE.DoubleSide })
+      overlayMat({ map: paperTex, side: THREE.DoubleSide })
     );
-    this._wipe.position.y = -1.2;
-    this._transScene.add(this._wipe);
+    this._wipe.position.set(0, -1.8, -2.0); // below the screen at rest
+    this._wipe.renderOrder = 998;
+    this._transGroup.add(this._wipe);
+    // motifs play at screen centre (camera space at z -1.9: half-height of
+    // the frame is 1.9*tan(21deg) = 0.73 units, so scale 0.73 keeps the
+    // intended 30-50% of frame sizes)
+    this._motifGroup = new THREE.Group();
+    this._motifGroup.position.set(0, 0, -1.9);
+    this._motifGroup.scale.setScalar(0.73);
+    this._transGroup.add(this._motifGroup);
     // ---- per-boundary morph elements (Phase 6 transition language).
     // Each is a pure function of the cover value, so scrubbing backwards
     // replays the morph in reverse.
-    const accentMat = (color) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.9 });
+    const accentMat = (color) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.9, depthTest: false });
+    const toMotif = (m) => { m.renderOrder = 999; this._motifGroup.add(m); };
     // I->II root line: a single line that draws itself across the page
     this._morphRoot = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.035), accentMat('#7fae6e'));
-    this._morphRoot.position.z = 0.02;
     this._morphRoot.scale.x = 0.001;
-    this._transScene.add(this._morphRoot);
+    toMotif(this._morphRoot);
     // II->III vine braid -> wind ribbon: two interlaced strands that
     // straighten into one flowing ribbon
     this._braidA = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.035), accentMat('#8fae7a'));
     this._braidB = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.035), accentMat('#8fb3c9'));
-    for (const m of [this._braidA, this._braidB]) { m.position.z = 0.02; m.scale.x = 0.001; this._transScene.add(m); }
+    for (const m of [this._braidA, this._braidB]) { m.scale.x = 0.001; toMotif(m); }
     // III->IV kite cloth -> thunder leaf: a diamond that rounds into a leaf
-    this._kite = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.55), new THREE.MeshBasicMaterial({ color: '#f4d9a8', transparent: true, opacity: 0.9, side: THREE.DoubleSide }));
+    this._kite = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.55), accentMat({ color: '#f4d9a8', side: THREE.DoubleSide }));
     this._kite.rotation.z = Math.PI / 4;
-    this._kite.position.z = 0.02;
     this._kite.scale.setScalar(0.001);
-    this._transScene.add(this._kite);
+    toMotif(this._kite);
     // IV->V rain bead -> sun lens: a bead that thins into a lens ring
     // IV->V rain bead -> sun lens: pre-built ring variants, big and central
     this._beadGeos = [];
@@ -222,28 +235,28 @@ export class ShellExperience {
       const r = i / 15;
       this._beadGeos.push(new THREE.RingGeometry(0.3 + r * 0.1, 0.55 - r * 0.15, 24));
     }
-    this._bead = new THREE.Mesh(this._beadGeos[0], new THREE.MeshBasicMaterial({ color: '#e0b45e', transparent: true, opacity: 0.9, side: THREE.DoubleSide }));
-    this._bead.position.z = 0.02;
+    this._bead = new THREE.Mesh(this._beadGeos[0], accentMat({ color: '#e0b45e', side: THREE.DoubleSide }));
     this._bead.scale.setScalar(0.001);
-    this._transScene.add(this._bead);
+    toMotif(this._bead);
     // V->VI sun thread -> rain halo: a sunburst that opens into a halo ring
-    this._halo = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.5, 28), new THREE.MeshBasicMaterial({ color: '#8fa8bf', transparent: true, opacity: 0.9, side: THREE.DoubleSide }));
-    this._halo.position.z = 0.02;
+    this._halo = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.5, 28), accentMat({ color: '#8fa8bf', side: THREE.DoubleSide }));
     this._halo.scale.setScalar(0.001);
-    this._transScene.add(this._halo);
+    toMotif(this._halo);
     this._threads = [];
     for (let i = 0; i < 8; i++) {
-      const th = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.028), new THREE.MeshBasicMaterial({ color: '#ffdf8a', transparent: true, opacity: 0.85 }));
+      const th = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.028), accentMat({ color: '#ffdf8a' }));
       const holder = new THREE.Object3D();
       holder.rotation.z = (i / 8) * Math.PI * 2;
       th.position.x = 0.4;
+      th.renderOrder = 999;
       holder.add(th);
-      holder.position.z = 0.02;
-      this._transScene.add(holder);
+      this._motifGroup.add(holder);
       this._threads.push({ th, holder });
     }
-    // keep morph elements hidden until their boundary is active
     this._activeMorph = null;
+    // the camera must be in the scene for its children to render
+    this.camera.add(this._transGroup);
+    this.scene.add(this.camera);
   }
 
   _setMorphOpacity(name, o) {
@@ -265,25 +278,27 @@ export class ShellExperience {
     for (let i = 0; i < n - 1; i++) {
       const boundary = (i + 1) / n;
       const d = g - boundary;
-      if (Math.abs(d) < 0.03) { bp = 1 - Math.abs(d) / 0.03; idx = i; break; } // a decisive crossing, not a sustained slab
+      if (Math.abs(d) < 0.02) { bp = 1 - Math.abs(d) / 0.02; idx = i; break; } // a decisive crossing
     }
-    const wipeY = () => -1.2 + Math.sin((this._bp || 0) * Math.PI) * 1.15;
+    // aspect-aware wipe width: the plane must cover the frame at any aspect
+    this._wipe.scale.x = this.camera.aspect;
     if (idx >= 0 && bp > 0.001) {
       const def = TRANSITIONS[idx];
       const cover = Math.sin(bp * Math.PI); // 0 -> 1 -> 0 (reversible in scroll)
       this._bp = bp;
-      this._wipe.material.opacity = cover;
-      this._wipe.position.y = wipeY();
+      // the bank rises from below the screen to FULL cover (plane at 0
+      // covers the whole frame at any aspect) and back — the story is
+      // visible again as it falls, no black, no held slabs
+      this._wipe.position.y = -1.8 + cover * 1.8;
       // fade all morphs, then drive the active one (pure in cover)
       for (const name of ['root', 'braid', 'kite', 'bead', 'halo']) this._setMorphOpacity(name, 0);
       this._activeMorph = def.name;
       this._morphDrive(def.name, cover);
       this._setMorphOpacity(def.name, Math.min(1, cover * 1.6));
-      this._transVisible = true;
+      this._transGroup.visible = true;
     } else {
-      this._transVisible = false;
+      this._transGroup.visible = false;
       this._activeMorph = null;
-      this._wipe.material.opacity = 0;
       for (const name of ['root', 'braid', 'kite', 'bead', 'halo']) this._setMorphOpacity(name, 0);
     }
   }
@@ -325,12 +340,6 @@ export class ShellExperience {
       this._halo.scale.setScalar(Math.max(0.001, r * 1.15));
       this._halo.material.opacity = r * 0.9;
       this._threads.forEach(({ th }) => { th.material.opacity = (1 - r * 0.7) * 0.85; });
-    }
-  }
-
-  renderTransitionPass(renderer) {
-    if (this._transVisible && this._wipe.material.opacity > 0.01) {
-      renderer.render(this._transScene, this._transCam);
     }
   }
 
