@@ -202,29 +202,48 @@ export class FirstSeedScene extends BaseScene {
   }
 
   camera(local, t, cam) {
+    // four story shots:
+    //  0-.25  CLOSE on the planting contact (gardener + seed bed)
+    //  .25-.55 medium side: the vine is born (gardener left, tip centre)
+    //  .55-.82 one wide beat (the 12-unit gap IS the proposition) ->
+    //          close tracking across the vine
+    //  .82-1  the right island, wind ribbons beyond
     const plantT = win(local, 0, 0.25);
     const growT = win(local, 0.25, 0.55);
     const crossT = win(local, 0.55, 0.82);
     const arriveT = win(local, 0.82, 1);
-    if (local < 0.25) {
-      // close on the planting contact
-      cam.position.set(-4.4 + plantT * 0.5, 1.2, 3.6);
-      cam.lookAt(-3.9, -0.3, 0.1);
-    } else if (local < 0.55) {
-      // wide side view: the bridge is the subject
-      cam.position.set(lerp(-2, 0, growT), 2.2, 11.2 - growT * 1.6);
-      cam.lookAt(0, -0.4, 0);
-    } else if (local < 0.82) {
-      // track the crossing at foot level
-      const u = 0.02 + crossT * 0.96;
-      const p = this.vineCurve.getPoint(u);
-      cam.position.set(p.x + 1.1, p.y + 1.5, 5.4);
-      cam.lookAt(p.x, p.y + 0.2, 0);
-    } else {
-      // arrival on the right island, wind from beyond
-      cam.position.set(5.2 + arriveT * 0.8, 2.4, 6.8 - arriveT);
-      cam.lookAt(3.6, 0, -0.5);
-    }
+    const u = 0.02 + crossT * 0.96;
+    const p = this.vineCurve.getPoint(u);
+    // shot A: planting close
+    let px = lerp(-3.1, -2.8, plantT), py = lerp(0.15, 0.25, plantT), pz = 1.9;
+    let lx = -4.35, ly = -0.2, lz = 0.2;
+    // shot B: vine birth, medium side (gardener left, growing tip centre)
+    const b = win(local, 0.21, 0.31);
+    px = lerp(px, lerp(-1.2, 0.6, growT), b);
+    py = lerp(py, lerp(0.4, 0.5, growT), b);
+    pz = lerp(pz, lerp(3.8, 3.6, growT), b);
+    lx = lerp(lx, lerp(-2.6, -1.2, growT), b);
+    ly = lerp(ly, lerp(-0.35, -0.5, growT), b);
+    lz = lerp(lz, 0.1, b);
+    // shot C: wide gap (the proposition) -> close tracking across:
+    // blend B -> wide at 0.55-0.63, wide -> track at 0.61-0.69
+    const wA = win(local, 0.55, 0.63);
+    const wB = win(local, 0.61, 0.69);
+    const wideX = 0, wideY = 2.6, wideZ = 10.8;
+    const trackX = p.x + 1.4, trackY = p.y + 1.0, trackZ = 3.0;
+    const wideLookX = 0, wideLookY = -0.6, wideLookZ = 0;
+    const trackLookX = p.x + 0.6, trackLookY = p.y + 0.15, trackLookZ = 0.05;
+    const toWide = wA, toTrack = wB;
+    px = lerp(px, wideX, toWide); py = lerp(py, wideY, toWide); pz = lerp(pz, wideZ, toWide);
+    lx = lerp(lx, wideLookX, toWide); ly = lerp(ly, wideLookY, toWide); lz = lerp(lz, wideLookZ, toWide);
+    px = lerp(px, trackX, toTrack); py = lerp(py, trackY, toTrack); pz = lerp(pz, trackZ, toTrack);
+    lx = lerp(lx, trackLookX, toTrack); ly = lerp(ly, trackLookY, toTrack); lz = lerp(lz, trackLookZ, toTrack);
+    // shot D: arrival island, wind beyond
+    const d = win(local, 0.78, 0.88);
+    px = lerp(px, 6.4, d); py = lerp(py, 0.9, d); pz = lerp(pz, 3.4, d);
+    lx = lerp(lx, 4.5, d); ly = lerp(ly, -0.25, d); lz = lerp(lz, -0.2, d);
+    cam.position.set(px, py, pz);
+    cam.lookAt(lx, ly, lz);
   }
 
   dispose() {}

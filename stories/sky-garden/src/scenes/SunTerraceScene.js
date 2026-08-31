@@ -61,7 +61,7 @@ export class SunTerraceScene extends BaseScene {
 
     // ---- the final seed: held in hand, planted in direct light ----
     this.seedAnchor = new THREE.Object3D();
-    this.seedAnchor.position.set(0.6, -0.5, 0.4);
+    this.seedAnchor.position.set(0.6, -0.55, 0.4);
     this.group.add(this.seedAnchor);
     this.seed = new THREE.Mesh(
       new THREE.SphereGeometry(0.09, 10, 8),
@@ -82,7 +82,7 @@ export class SunTerraceScene extends BaseScene {
 
     // ---- rain halo: bead ring + bloom that cools the sun (0.82-1) ----
     this.halo = new THREE.Group();
-    this.halo.position.set(0.6, -0.35, 0.4);
+    this.halo.position.set(0.6, -0.3, 0.4);
     this.haloBeads = [];
     const beadGeo = kit.rainBeadGeometry();
     for (let i = 0; i < 14; i++) {
@@ -166,7 +166,7 @@ export class SunTerraceScene extends BaseScene {
       b.node.scale.set(1, 1 + bloomT, 1);
     });
     this.bloom.scale.setScalar(0.001 + bloomT * 1);
-    this.halo.position.y = -0.35 + bloomT * 0.5;
+    this.halo.position.y = -0.3 + bloomT * 0.5;
     this.rain.setIntensity(bloomT * 0.4, t.time);
     // heat becomes warm light: the sun's color softens, warm light rises
     this.warmLight.intensity = 0.4 + bloomT * 1.2;
@@ -185,17 +185,29 @@ export class SunTerraceScene extends BaseScene {
   }
 
   camera(local, t, cam) {
-    // setup: high exposed approach -> contact: low at the seed and threads
-    // -> consequence: pull back as the halo cools the sun
-    const approachT = win(local, 0, 0.28);
-    const contactT = win(local, 0.28, 0.7);
+    // four story shots:
+    //  0-.28  setup: the exposed terrace, heat threads crossing above
+    //  .28-.58 CLOSE: the felt canopy raised over the seed
+    //  .58-.82 CLOSE: the seed in direct light, threads drooping to it
+    //  .82-1  consequence: the bloom + rain halo cools the sun
+    const gp = this.gardener.group.position;
+    let px = -4.6, py = 0.6, pz = 4.6;
+    let lx = 0, ly = -0.3, lz = -0.4;
+    // canopy close (gardener at ~-0.7, canopy at ~-1.05, 0.4, 0.75)
+    const a = win(local, 0.24, 0.34);
+    px = lerp(px, 0.9, a); py = lerp(py, 0.5, a); pz = lerp(pz, 2.4, a);
+    lx = lerp(lx, -0.8, a); ly = lerp(ly, 0.1, a); lz = lerp(lz, 0.6, a);
+    // plant close (seed at 0.6, -0.55, 0.4)
+    const b = win(local, 0.54, 0.64);
+    px = lerp(px, 2.0, b); py = lerp(py, -0.2, b); pz = lerp(pz, 2.2, b);
+    lx = lerp(lx, 0.6, b); ly = lerp(ly, -0.4, b); lz = lerp(lz, 0.4, b);
+    // halo consequence
     const bloomT = win(local, 0.82, 1);
-    cam.position.set(
-      lerp(-3.2, 1.6, contactT) - bloomT * 1.2,
-      lerp(4.4, 1.1, contactT) + bloomT * 1.6,
-      lerp(8.6, 5.2, contactT) + bloomT * 2.2
-    );
-    cam.lookAt(lerp(-1, 0.6, approachT + contactT * 0.5), lerp(0.2, -0.4, contactT) + bloomT * 0.6, -0.5 + bloomT * 1.2);
+    const c = win(local, 0.78, 0.88);
+    px = lerp(px, 1.2, c); py = lerp(py, 1.6, c); pz = lerp(pz, 5.0, c);
+    lx = lerp(lx, 0.6, c); ly = lerp(ly, 0.0, c); lz = lerp(lz, 0.3, c);
+    cam.position.set(px, py, pz);
+    cam.lookAt(lx, ly, lz);
   }
 
   dispose() {

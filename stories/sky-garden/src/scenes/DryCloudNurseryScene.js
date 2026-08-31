@@ -95,7 +95,7 @@ export class DryCloudNurseryScene extends BaseScene {
 
     // ---- seed satchel: six seeds, chapter colors (reveal beat) ----
     this.satchel = new SeedSatchel(kit);
-    this.satchel.group.position.set(-0.9, 0.15, 0.5);
+    this.satchel.group.position.set(0.95, 0.15, 0.6); // beside the gardener's stopping point
     this.satchel.group.scale.setScalar(1.6);
     this.group.add(this.satchel.group);
     this._satchelT = 0;
@@ -240,21 +240,40 @@ export class DryCloudNurseryScene extends BaseScene {
   }
 
   camera(local, t, cam) {
-    // intimate: dolly between the beds -> the satchel -> the watering
-    // contact -> follow the root line out to the edge, ending on the
-    // gap (the bridge chapter begins where this line ends)
+    // four story shots on the beat windows:
+    //  0-.20  setup: the nursery arc, beds, reservoir behind
+    //  .2-.5  CLOSE on the satchel reveal (seeds fanning out)
+    //  .5-.78 CLOSE on the watering contact (spout -> seed)
+    //  .78-1  follow the root runner to the island edge (exit)
     const walkT = win(local, 0, 0.2);
     const satchelT = win(local, 0.2, 0.5);
     const waterT = win(local, 0.5, 0.78);
     const edgeT = win(local, 0.78, 1);
-    cam.position.set(
-      lerp(-2.6, -0.6, walkT) + lerp(0, 0.5, satchelT) + lerp(0, 1.4, waterT) + lerp(0, 2.6, edgeT),
-      lerp(1.5, 1.8, walkT) + lerp(0, 0.8, edgeT),
-      lerp(5.2, 4.8, walkT) - waterT * 1.1 + lerp(0, 1.2, edgeT)
-    );
-    const lookX = lerp(-1.2, 0.1, walkT) + lerp(0, 0.1, satchelT) + lerp(0, 1.8, edgeT);
-    const lookY = lerp(-0.1, -0.28, walkT) - edgeT * 0.05;
-    cam.lookAt(lookX, lookY, lerp(0.4, 0.3, edgeT));
+    const shot = win(local, 0.16, 0.26);        // setup -> satchel
+    const shot2 = win(local, 0.46, 0.56);       // satchel -> watering
+    const shot3 = win(local, 0.74, 0.84);       // watering -> exit
+    // setup
+    let px = lerp(-3.6, -2.6, walkT), py = lerp(0.9, 1.0, walkT), pz = lerp(4.4, 4.0, walkT);
+    let lx = -0.2, ly = -0.3, lz = 0.5;
+    // satchel (close)
+    px = lerp(px, lerp(2.3, 1.9, satchelT), shot);
+    py = lerp(py, lerp(0.35, 0.3, satchelT), shot);
+    pz = lerp(pz, lerp(2.6, 2.3, satchelT), shot);
+    lx = lerp(lx, 0.8, shot); ly = lerp(ly, 0.1, shot); lz = lerp(lz, 0.6, shot);
+    // watering (close contact)
+    px = lerp(px, lerp(1.9, 1.55, waterT), shot2);
+    py = lerp(py, lerp(0.15, 0.05, waterT), shot2);
+    pz = lerp(pz, lerp(2.0, 1.7, waterT), shot2);
+    lx = lerp(lx, 0.3, shot2); ly = lerp(ly, -0.15, shot2); lz = lerp(lz, 0.45, shot2);
+    // root runner to the edge (exit)
+    px = lerp(px, lerp(1.6, 3.4, edgeT), shot3);
+    py = lerp(py, lerp(0.3, 0.4, edgeT), shot3);
+    pz = lerp(pz, lerp(1.9, 2.8, edgeT), shot3);
+    lx = lerp(lx, lerp(1.0, 3.4, edgeT), shot3);
+    ly = lerp(ly, lerp(-0.25, -0.15, edgeT), shot3);
+    lz = lerp(lz, lerp(0.4, 0.25, edgeT), shot3);
+    cam.position.set(px, py, pz);
+    cam.lookAt(lx, ly, lz);
   }
 
   dispose() {}

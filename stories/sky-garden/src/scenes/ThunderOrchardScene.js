@@ -154,23 +154,32 @@ export class ThunderOrchardScene extends BaseScene {
   }
 
   camera(local, t, cam) {
-    // setup: orchard wide -> climb rise (vertical) -> contact close (fruit)
-    // -> consequence: pull over the reservoir as rain begins
-    const phase1 = win(local, 0, 0.22);
-    const phase2 = win(local, 0.22, 0.55);
-    const phase3 = win(local, 0.55, 0.78);
-    const phase4 = win(local, 0.78, 1);
-    cam.position.set(
-      lerp(-3.5, 1.4, phase2) + lerp(0, -1.8, phase4),
-      lerp(1.1, 3.4, phase2) + lerp(0, 2.2, phase4) + phase3 * 0.4,
-      lerp(9.0, 4.6, phase2) - phase4 * 0.6
-    );
-    const look = new THREE.Vector3(
-      lerp(-1, 1.2, phase2),
-      lerp(0.4, 2.4, phase2) - phase4 * 1.6,
-      lerp(-0.5, -0.1, phase2) + phase4 * 2.2
-    );
-    cam.lookAt(look);
+    // four story shots:
+    //  0-.22  setup: the dry orchard, branches sagging
+    //  .22-.55 CLOSE follow of the climb (the gardener rises, big in frame)
+    //  .55-.78 CLOSE on the catch: hand -> thunder fruit
+    //  .78-1  consequence: fruit over the reservoir, rain begins
+    const climbT = win(local, 0.22, 0.55);
+    const carryT = win(local, 0.55, 0.78);
+    const openT = win(local, 0.78, 1);
+    const gx = lerp(-3.2, 1.2, climbT) * (1 - carryT * 0.4);
+    const gy = lerp(-1.2, 2.6, climbT);
+    let px = -4.2, py = 0.2, pz = 5.0;
+    let lx = 0, ly = 0.2, lz = -0.5;
+    // climb follow (close, rides the gardener up)
+    const a = win(local, 0.18, 0.28);
+    px = lerp(px, gx + 2.0, a); py = lerp(py, gy + 0.7, a); pz = lerp(pz, 2.8, a);
+    lx = lerp(lx, gx, a); ly = lerp(ly, gy + 0.2, a); lz = lerp(lz, 0, a);
+    // catch close (fruit at 1.2, 2.6, -0.1)
+    const b = win(local, 0.51, 0.61);
+    px = lerp(px, 2.6, b); py = lerp(py, 2.7, b); pz = lerp(pz, 1.4, b);
+    lx = lerp(lx, 1.2, b); ly = lerp(ly, 2.55, b); lz = lerp(lz, -0.1, b);
+    // open over the reservoir (0, 0.4, 2.6)
+    const c = win(local, 0.74, 0.86);
+    px = lerp(px, 1.8, c); py = lerp(py, 1.3, c); pz = lerp(pz, 4.8, c);
+    lx = lerp(lx, 0.2, c); ly = lerp(ly, 0.9, c); lz = lerp(lz, 2.2, c);
+    cam.position.set(px, py, pz);
+    cam.lookAt(lx, ly, lz);
   }
 
   dispose() {

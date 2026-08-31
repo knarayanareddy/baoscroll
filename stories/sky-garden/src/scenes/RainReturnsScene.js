@@ -233,21 +233,27 @@ export class RainReturnsScene extends BaseScene {
   }
 
   camera(local, t, cam) {
-    // contact at the valve -> pull up through the synchronized layers ->
-    // wide aerial: the gardener small, the rain system continuing
-    const valveT = win(local, 0, 0.25);
-    const layersT = win(local, 0.25, 0.84);
-    const awayT = win(local, 0.84, 1);
-    cam.position.set(
-      lerp(-0.9, 0, valveT) + lerp(0, 2.5, awayT),
-      lerp(2.1, 3.4, valveT) + lerp(0, 6.5, layersT) + awayT * 3,
-      lerp(2.6, 2.2, valveT) + lerp(0, 3.5, layersT) + awayT * 11
-    );
-    cam.lookAt(
-      lerp(-1.4, 0, valveT),
-      lerp(1.9, 0.6, valveT) - layersT * 0.8 - awayT * 1.5,
-      lerp(0.6, -1.5, layersT)
-    );
+    // four story shots (the platform sits at y ~1.5):
+    //  0-.25  CLOSE on the hand -> valve
+    //  .25-.58 pull up through the synchronized garden layers
+    //  .58-.84 tilt down: rain crossing to the waking world below
+    //  .84-1  the wide aerial — the gardener small, the rain continuing
+    let px = 0.1, py = 2.15, pz = 2.5;
+    let lx = -1.3, ly = 1.9, lz = 0.75;
+    // synchronized layers
+    const a = win(local, 0.21, 0.33);
+    px = lerp(px, 2.2, a); py = lerp(py, 3.2, a); pz = lerp(pz, 6.0, a);
+    lx = lerp(lx, 0.3, a); ly = lerp(ly, 1.0, a); lz = lerp(lz, -2.5, a);
+    // rain crosses to the world below (ground at y -5)
+    const b = win(local, 0.54, 0.66);
+    px = lerp(px, 1.0, b); py = lerp(py, 1.2, b); pz = lerp(pz, 8.0, b);
+    lx = lerp(lx, 0, b); ly = lerp(ly, -3.0, b); lz = lerp(lz, -2, b);
+    // the wide aerial
+    const c = win(local, 0.8, 0.94);
+    px = lerp(px, 3.0, c); py = lerp(py, 8.0, c); pz = lerp(pz, 17, c);
+    lx = lerp(lx, 0, c); ly = lerp(ly, 0.5, c); lz = lerp(lz, -2, c);
+    cam.position.set(px, py, pz);
+    cam.lookAt(lx, ly, lz);
   }
 
   dispose() {

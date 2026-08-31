@@ -72,21 +72,41 @@ function assertFiniteSubtree(root) {
 const approxEq = (a, b) => a.length > 0 && a.every((v, i) => Math.abs(v - b[i]) < 1e-4);
 
 const tCtx = (timeRef) => ({ time: timeRef.t, velocity: 0, wind: 0.3 });
-const step = (scene, local, timeRef, dt) => { timeRef.t += dt; scene.update(local, timeRef.t, tCtx(timeRef)); };
+// recording mock camera: camera() must produce finite values at every local
+function mockCamera(camLog) {
+  return {
+    position: {
+      x: 0, y: 0, z: 0,
+      set(x, y, z) { this.x = x; this.y = y; this.z = z; camLog.push(x, y, z); }
+    },
+    lookAt(x, y, z) {
+      if (x && typeof x === 'object') camLog.push(x.x, x.y, x.z); // Vector3 form
+      else camLog.push(x, y, z);
+    }
+  };
+}
+const step = (scene, local, timeRef, dt, camLog) => {
+  timeRef.t += dt;
+  scene.update(local, timeRef.t, tCtx(timeRef));
+  if (camLog) scene.camera(local, tCtx(timeRef), mockCamera(camLog));
+};
 
 async function scrub(scene, steps, timeRef, dt) {
+  const camLog = [];
+  const s = (local) => step(scene, local, timeRef, dt, camLog);
   // forward 0 -> 0.5 (capture structural state at 0.5) -> 1.0
-  for (let i = 0; i <= Math.floor(steps / 2); i++) step(scene, (i / Math.floor(steps / 2)) * 0.5, timeRef, dt);
+  for (let i = 0; i <= Math.floor(steps / 2); i++) s((i / Math.floor(steps / 2)) * 0.5);
   const atHalf = scene.structuralState();
-  for (let i = Math.floor(steps / 2); i <= steps; i++) step(scene, i / steps, timeRef, dt);
+  for (let i = Math.floor(steps / 2); i <= steps; i++) s(i / steps);
   const fwdBad = assertFiniteSubtree(scene.group);
   // reverse 1.0 -> 0
-  for (let i = steps; i >= 0; i--) step(scene, i / steps, timeRef, dt);
+  for (let i = steps; i >= 0; i--) s(i / steps);
   const revBad = assertFiniteSubtree(scene.group);
   // forward 0 -> 0.5 again: structural state must match the first pass
-  for (let i = 0; i <= Math.floor(steps / 2); i++) step(scene, (i / Math.floor(steps / 2)) * 0.5, timeRef, dt);
+  for (let i = 0; i <= Math.floor(steps / 2); i++) s((i / Math.floor(steps / 2)) * 0.5);
   const backToHalf = scene.structuralState();
-  return { fwdBad, revBad, deterministic: approxEq(atHalf, backToHalf) };
+  const camBad = camLog.filter((v) => v === undefined || !Number.isFinite(v)).length;
+  return { fwdBad, revBad, camBad, deterministic: approxEq(atHalf, backToHalf) };
 }
 
 /* ---------------- run ---------------- */
@@ -110,8 +130,8 @@ for (let i = 0; i < SCENES.length; i++) {
     scene.build(ctx(i));
     const timeRef = { t: 0 };
     const r = await scrub(scene, 40, timeRef, 0.03);
-    note(`sky-garden:${CH_NAMES[i]}`, r.fwdBad === 0 && r.revBad === 0 && r.deterministic,
-      `fwd non-finite=${r.fwdBad}, rev non-finite=${r.revBad}, reverse-deterministic=${r.deterministic}`);
+    note(`sky-garden:${CH_NAMES[i]}`, r.fwdBad === 0 && r.revBad === 0 && r.camBad === 0 && r.deterministic,
+      `fwd non-finite=${r.fwdBad}, rev non-finite=${r.revBad}, camera non-finite=${r.camBad}, reverse-deterministic=${r.deterministic}`);
     scene.dispose?.();
   } catch (e) {
     note(`sky-garden:${CH_NAMES[i]}`, false, `threw: ${e.message.split('\n')[0]}`);
