@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Seeds of the Sky Garden — Unified Shell</title>
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: #dfe8ee; color: #2a3440; font: 17px/1.6 Georgia, 'Times New Roman', serif; }
+    #webgl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; }
+    main { position: relative; z-index: 1; pointer-events: none; }
+    section[data-chapter] { display: grid; place-content: end start; padding: 6vh 6vw 10vh; }
+    section[data-chapter] h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .card { max-width: 30rem; background: rgba(244, 239, 226, 0.92); border: 1px solid rgba(58, 68, 80, 0.25); border-radius: 3px 14px 3px 14px; padding: 1.1rem 1.4rem; box-shadow: 0 8px 24px rgba(40, 50, 60, 0.15); }
+    .card .numeral { font-size: 0.8rem; letter-spacing: 0.2em; opacity: 0.6; }
+    .card h1 { margin: 0.15rem 0; font-size: 1.35rem; font-weight: 600; }
+    .card p { margin: 0.2rem 0 0; font-style: italic; opacity: 0.85; }
+    header.ui { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 1.1rem; z-index: 5; background: linear-gradient(rgba(223, 232, 238, 0.9), rgba(223, 232, 238, 0)); pointer-events: none; }
+    header.ui * { pointer-events: auto; }
+    .chap { font-size: 0.85rem; letter-spacing: 0.12em; opacity: 0.8; }
+    .chap b { font-size: 1.05rem; }
+    #progress { position: fixed; left: 0; bottom: 0; width: 100%; height: 3px; z-index: 6; background: rgba(42, 52, 64, 0.12); }
+    #progress-fill { display: block; height: 100%; background: #5f93b8; transform-origin: 0 50%; transform: scaleX(0); }
+    .controls { position: fixed; right: 1rem; bottom: 2rem; display: flex; gap: 0.5rem; z-index: 6; }
+    .controls button { font: 600 0.85rem/1 Georgia, serif; color: #2a3440; background: rgba(244, 239, 226, 0.92); border: 1px solid rgba(58, 68, 80, 0.35); border-radius: 8px; padding: 0.55rem 0.85rem; cursor: pointer; }
+    .controls button[aria-pressed="true"] { background: rgba(95, 147, 184, 0.25); border-color: #5f93b8; }
+    #sg-caption { position: fixed; left: 50%; bottom: 5rem; transform: translateX(-50%) translateY(8px); max-width: min(44rem, 86vw); margin: 0; padding: 0.55rem 1.1rem; text-align: center; font: italic 1.02rem/1.5 Georgia, serif; color: #2a3440; background: rgba(244, 239, 226, 0.94); border: 1px solid rgba(58, 68, 80, 0.28); border-radius: 4px 14px 4px 14px; opacity: 0; pointer-events: none; transition: opacity 0.35s ease, transform 0.35s ease; z-index: 7; }
+    #sg-caption.active { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    #loader { position: fixed; inset: 0; z-index: 20; display: grid; place-content: center; background: #dfe8ee; transition: opacity 0.6s ease; }
+    #loader.done { opacity: 0; pointer-events: none; }
+    #loader .note { margin-top: 1rem; font-style: italic; opacity: 0.6; font-size: 0.9rem; }
+    #no-webgl { display: none; }
+  </style>
+</head>
+<body>
+  <div id="loader" role="status">
+    <div style="text-align:center">
+      <p style="letter-spacing:0.18em; font-size:0.85rem">SEEDS OF THE SKY GARDEN</p>
+      <p class="note">waking the clouds…</p>
+    </div>
+  </div>
+  <canvas id="webgl" aria-hidden="true"></canvas>
+  <div id="no-webgl" hidden style="position:fixed; inset:0; z-index:30; overflow:auto; padding:10vh 8vw; background:#dfe8ee">
+    <h1>Seeds of the Sky Garden</h1>
+    <p>This is a WebGL story — a garden that grows with your scroll. Your browser could not start WebGL, so the moving picture cannot be painted here. The story itself is below.</p>
+  </div>
+  <header class="ui">
+    <p class="chap"><b id="chapter-num">I</b> &nbsp;·&nbsp; <span id="chapter-name">The Dry Cloud Nursery</span></p>
+    <p class="visually-hidden" aria-live="polite" id="chapter-live"></p>
+  </header>
+  <main id="chapters">
+    <section data-chapter="0" id="sg-chapter-nursery"><h2>Chapter 1 — The Dry Cloud Nursery</h2><div class="card"><p class="numeral">I</p><h1>The Dry Cloud Nursery</h1><p>Find the last seeds</p></div></section>
+    <section data-chapter="1" id="sg-chapter-seed"><h2>Chapter 2 — The First Seed</h2><div class="card"><p class="numeral">II</p><h1>The First Seed</h1><p>Grow a bridge</p></div></section>
+    <section data-chapter="2" id="sg-chapter-wind"><h2>Chapter 3 — The Wind Maze</h2><div class="card"><p class="numeral">III</p><h1>The Wind Maze</h1><p>Cross moving islands</p></div></section>
+    <section data-chapter="3" id="sg-chapter-orchard"><h2>Chapter 4 — The Thunder Orchard</h2><div class="card"><p class="numeral">IV</p><h1>The Thunder Orchard</h1><p>Harvest a storm</p></div></section>
+    <section data-chapter="4" id="sg-chapter-sun"><h2>Chapter 5 — The Garden Meets the Sun</h2><div class="card"><p class="numeral">V</p><h1>The Garden Meets the Sun</h1><p>Ask the sky to soften</p></div></section>
+    <section data-chapter="5" id="sg-chapter-rain"><h2>Chapter 6 — Rain Returns</h2><div class="card"><p class="numeral">VI</p><h1>Rain Returns</h1><p>Let the world drink</p></div></section>
+  </main>
+  <div id="progress"><span id="progress-fill"></span></div>
+  <p id="sg-caption" aria-hidden="true"></p>
+  <p class="visually-hidden" aria-live="polite" id="sg-live"></p>
+  <div class="controls" role="toolbar" aria-label="Experience controls">
+    <button id="btn-sound" aria-pressed="false" aria-label="Turn sound on" title="Sound">Sound</button>
+    <button id="btn-voice" aria-pressed="false" aria-label="Turn narration on" title="Narration">Narration</button>
+    <button id="btn-pause" aria-pressed="false" aria-label="Pause ambient motion" title="Pause">Pause</button>
+    <button id="btn-replay" aria-label="Replay the story" title="Replay">Replay</button>
+  </div>
+  <script type="module" src="./shellMain.js"></script>
+</body>
+</html>
