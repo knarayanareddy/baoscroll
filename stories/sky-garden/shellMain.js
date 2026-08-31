@@ -43,7 +43,11 @@ async function boot() {
   experience.registerScenes(SCENES);
   await experience.init((p) => loader.classList.add('done'));
   experience.audio = new ShellAudio();
-  const narration = new NarrationController(experience.audio, { cues: NARRATION_CUES });
+  // clip location: module dev root vs the integrated whole-site build
+  const narrationBase = location.pathname.startsWith('/stories/sky-garden')
+    ? '../../audio/narration/sky-garden'
+    : '/audio/narration/sky-garden';
+  const narration = new NarrationController(experience.audio, { cues: NARRATION_CUES, basePath: narrationBase });
 
   experience.onChapterChange = (i) => {
     const c = CHAPTERS[i];
@@ -77,6 +81,10 @@ async function boot() {
     narration.setPaused(p);
   });
   $('btn-replay').addEventListener('click', () => experience.scrollToChapter(0));
+  // read-mode transcript: the narration as text (no audio required)
+  const readDlg = $('sg-read');
+  $('btn-read').addEventListener('click', () => readDlg.showModal());
+  $('sg-read-close').addEventListener('click', () => readDlg.close());
 
   // narration follows chapter changes (chapter-addressed cues)
   const origChange = experience.onChapterChange;

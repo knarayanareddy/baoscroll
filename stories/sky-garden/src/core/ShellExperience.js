@@ -141,10 +141,11 @@ export class ShellExperience {
       const vel = this.reducedMotion ? 0 : (this._velocity || 0);
       cur.built.update(this.local, dt, { time: this.storyTime, velocity: vel, wind: 0.3 + 0.3 * Math.sin(this.local * 6.28) });
     }
-    const camFn = cur?.built?.camera;
-    if (camFn) camFn(this.local, { time: this.storyTime, reduced: this.reducedMotion }, this.camera);
+    // call as a METHOD so `this` is the scene — scene cameras read scene
+    // state (e.g. FirstSeed's vineCurve); an unbound call would lose it
+    if (cur?.built?.camera) cur.built.camera(this.local, { time: this.storyTime, reduced: this.reducedMotion }, this.camera);
     // global camera fallback when scene has no camera (placeholders)
-    if (!camFn && this.camera.position.lengthSq() === 0) {
+    if (!cur?.built?.camera && this.camera.position.lengthSq() === 0) {
       this.camera.position.set(0, 1.2, 6);
       this.camera.lookAt(0, 0.8, 0);
     }
@@ -178,13 +179,67 @@ export class ShellExperience {
     );
     this._wipe.position.y = -1.2;
     this._transScene.add(this._wipe);
-    // accent line (root/vine/kite/bead/thread per boundary)
-    this._accent = new THREE.Mesh(
-      new THREE.PlaneGeometry(2, 0.03),
-      new THREE.MeshBasicMaterial({ color: '#9fbf8f', transparent: true, opacity: 0.9 })
-    );
-    this._accent.position.y = -1.2;
-    this._transScene.add(this._accent);
+    // ---- per-boundary morph elements (Phase 6 transition language).
+    // Each is a pure function of the cover value, so scrubbing backwards
+    // replays the morph in reverse.
+    const accentMat = (color) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.9 });
+    // I->II root line: a single line that draws itself across the paper
+    this._morphRoot = new THREE.Mesh(new THREE.PlaneGeometry(2, 0.025), accentMat('#7fae6e'));
+    this._morphRoot.position.y = -1.2;
+    this._morphRoot.scale.x = 0.001;
+    this._transScene.add(this._morphRoot);
+    // II->III vine braid -> wind ribbon: two interlaced strands that
+    // straighten into one flowing ribbon
+    this._braidA = new THREE.Mesh(new THREE.PlaneGeometry(2, 0.022), accentMat('#8fae7a'));
+    this._braidB = new THREE.Mesh(new THREE.PlaneGeometry(2, 0.022), accentMat('#8fb3c9'));
+    for (const m of [this._braidA, this._braidB]) { m.position.y = -1.2; m.scale.x = 0.001; this._transScene.add(m); }
+    // III->IV kite cloth -> thunder leaf: a diamond that rounds into a leaf
+    this._kite = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.5), new THREE.MeshBasicMaterial({ color: '#f4d9a8', transparent: true, opacity: 0.85, side: THREE.DoubleSide }));
+    this._kite.rotation.z = Math.PI / 4;
+    this._kite.position.y = -1.2;
+    this._kite.scale.setScalar(0.001);
+    this._transScene.add(this._kite);
+    // IV->V rain bead -> sun lens: a bead that thins into a lens ring
+    // bead -> lens ring: pre-built geometry variants (no per-frame
+    // allocation — plan QA criterion)
+    this._beadGeos = [];
+    for (let i = 0; i < 16; i++) {
+      const r = i / 15;
+      this._beadGeos.push(new THREE.RingGeometry(0.16 + r * 0.06, 0.3 - r * 0.09, 20));
+    }
+    this._bead = new THREE.Mesh(this._beadGeos[0], new THREE.MeshBasicMaterial({ color: '#e0b45e', transparent: true, opacity: 0.9, side: THREE.DoubleSide }));
+    this._bead.position.y = -1.2;
+    this._bead.scale.setScalar(0.001);
+    this._transScene.add(this._bead);
+    // V->VI sun thread -> rain halo: a sunburst that opens into a halo ring
+    this._halo = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.24, 24), new THREE.MeshBasicMaterial({ color: '#8fa8bf', transparent: true, opacity: 0.9, side: THREE.DoubleSide }));
+    this._halo.position.y = -1.2;
+    this._halo.scale.setScalar(0.001);
+    this._transScene.add(this._halo);
+    this._threads = [];
+    for (let i = 0; i < 8; i++) {
+      const th = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.018), new THREE.MeshBasicMaterial({ color: '#ffdf8a', transparent: true, opacity: 0.85 }));
+      const holder = new THREE.Object3D();
+      holder.rotation.z = (i / 8) * Math.PI * 2;
+      th.position.x = 0.3;
+      holder.add(th);
+      holder.position.y = -1.2;
+      this._transScene.add(holder);
+      this._threads.push({ th, holder });
+    }
+    // keep morph elements hidden until their boundary is active
+    this._activeMorph = null;
+  }
+
+  _setMorphOpacity(name, o) {
+    const map = {
+      root: [this._morphRoot],
+      braid: [this._braidA, this._braidB],
+      kite: [this._kite],
+      bead: [this._bead],
+      halo: [this._halo, ...this._threads.map((t) => t.th)]
+    };
+    (map[name] || []).forEach((m) => { m.material.opacity = o * (m.userData?.baseOpacity ?? 0.9); });
   }
 
   // boundary progress: each transition owns the outer 6% of the boundary
@@ -197,24 +252,71 @@ export class ShellExperience {
       const d = g - boundary;
       if (Math.abs(d) < 0.05) { bp = 1 - Math.abs(d) / 0.05; idx = i; break; }
     }
+    const wipeY = () => -1.2 + Math.sin((this._bp || 0) * Math.PI) * 1.15;
     if (idx >= 0 && bp > 0.001) {
       const def = TRANSITIONS[idx];
-      const cover = Math.sin(bp * Math.PI); // 0 -> 1 -> 0
+      const cover = Math.sin(bp * Math.PI); // 0 -> 1 -> 0 (reversible in scroll)
+      this._bp = bp;
       this._wipe.material.opacity = cover;
-      this._wipe.position.y = -1.2 + cover * 1.15;
-      this._accent.material.color.set(def.accent);
-      this._accent.material.opacity = cover * 0.9;
-      this._accent.position.y = this._wipe.position.y + 0.06;
+      this._wipe.position.y = wipeY();
+      // fade all morphs, then drive the active one (pure in cover)
+      for (const name of ['root', 'braid', 'kite', 'bead', 'halo']) this._setMorphOpacity(name, 0);
+      this._activeMorph = def.name;
+      this._morphDrive(def.name, cover, wipeY());
+      this._setMorphOpacity(def.name, Math.min(1, cover * 1.6));
       this._transVisible = true;
     } else {
       this._transVisible = false;
+      this._activeMorph = null;
       this._wipe.material.opacity = 0;
-      this._accent.material.opacity = 0;
+      for (const name of ['root', 'braid', 'kite', 'bead', 'halo']) this._setMorphOpacity(name, 0);
+    }
+  }
+
+  _morphDrive(name, cover, y) {
+    // cover: 0 -> 1 -> 0 as the boundary is crossed; every value below is
+    // a pure function of cover (scrubbing backwards replays the morph)
+    if (name === 'root') {
+      this._morphRoot.scale.x = Math.max(0.001, cover);          // draws itself
+      this._morphRoot.position.y = y;
+    } else if (name === 'braid') {
+      // two interlaced strands straighten into a single ribbon line
+      const spread = (1 - cover) * 0.05;
+      const wave = (1 - cover) * 0.03;
+      this._braidA.scale.x = this._braidB.scale.x = Math.max(0.001, cover);
+      this._braidA.position.y = y + spread + Math.sin(cover * 6) * wave;
+      this._braidB.position.y = y - spread + Math.sin(cover * 6 + Math.PI) * wave;
+      this._braidA.rotation.z = (1 - cover) * 0.12;
+      this._braidB.rotation.z = -(1 - cover) * 0.12;
+    } else if (name === 'kite') {
+      // diamond (kite cloth) rounds into a leaf: squash X, grow Y, settle
+      const r = Math.min(1, cover * 1.5);
+      this._kite.scale.set(0.001 + (1 - r * 0.4) * r * 1.4, 0.001 + r * 1.7, 1);
+      this._kite.rotation.z = Math.PI / 4 - r * 0.5;
+      this._kite.position.y = y;
+    } else if (name === 'bead') {
+      // bead (filled) thins into a lens ring: inner radius closes in
+      // (geometry variants pre-built — pure in cover, no allocation)
+      const r = Math.min(1, cover * 1.4);
+      this._bead.geometry = this._beadGeos[Math.min(15, Math.round(r * 15))];
+      this._bead.scale.setScalar(Math.max(0.001, 0.3 + r * 1.1));
+      this._bead.position.y = y;
+    } else if (name === 'halo') {
+      // sunburst threads open outward and join into a halo ring
+      const r = Math.min(1, cover * 1.3);
+      for (const { th, holder } of this._threads) {
+        holder.rotation.z += 0; // keep base angles
+        th.scale.x = 0.3 + r * 0.9;
+        th.position.x = 0.18 + r * 0.34;
+      }
+      this._halo.scale.setScalar(Math.max(0.001, r * 0.9));
+      this._halo.material.opacity = r * 0.9;
+      this._threads.forEach(({ th }) => { th.material.opacity = (1 - r * 0.7) * 0.85; });
     }
   }
 
   renderTransitionPass(renderer) {
-    if (this._transVisible && (this._wipe.material.opacity > 0.01 || this._accent.material.opacity > 0.01)) {
+    if (this._transVisible && this._wipe.material.opacity > 0.01) {
       renderer.render(this._transScene, this._transCam);
     }
   }
@@ -239,6 +341,7 @@ export class ShellExperience {
     this.scenes.forEach((s) => s.built.dispose?.());
     this.scenes.clear();
     this.kit?.dispose();
+    this._beadGeos?.forEach((g) => g.dispose());
     this.renderer.dispose();
   }
 }

@@ -32,6 +32,14 @@
     #loader.done { opacity: 0; pointer-events: none; }
     #loader .note { margin-top: 1rem; font-style: italic; opacity: 0.6; font-size: 0.9rem; }
     #no-webgl { display: none; }
+    dialog#sg-read { max-width: 34rem; width: 88vw; border: 1px solid rgba(58,68,80,.35); border-radius: 4px 18px 4px 18px; background: #f4efe2; color: #2a3440; padding: 1.4rem 1.7rem; font: 16px/1.6 Georgia, serif; }
+    dialog#sg-read::backdrop { background: rgba(42,52,64,.4); }
+    dialog#sg-read h2 { margin: 0 0 .3rem; font-size: 1.2rem; }
+    dialog#sg-read .sg-read-note { margin: 0 0 .8rem; font-size: .82rem; font-style: italic; opacity: .65; }
+    dialog#sg-read ol { margin: 0; padding-left: 1.1rem; }
+    dialog#sg-read li { margin: .5rem 0; }
+    dialog#sg-read .numeral { font-size: .75rem; letter-spacing: .15em; opacity: .6; margin-right: .3rem; }
+    dialog#sg-read #sg-read-close { float: right; font: 600 .8rem/1 Georgia, serif; color: #2a3440; background: transparent; border: 1px solid rgba(58,68,80,.4); border-radius: 7px; padding: .4rem .7rem; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -66,7 +74,21 @@
     <button id="btn-voice" aria-pressed="false" aria-label="Turn narration on" title="Narration">Narration</button>
     <button id="btn-pause" aria-pressed="false" aria-label="Pause ambient motion" title="Pause">Pause</button>
     <button id="btn-replay" aria-label="Replay the story" title="Replay">Replay</button>
+    <button id="btn-read" aria-label="Read the narration transcript" title="Read">Read</button>
   </div>
+  <dialog id="sg-read" aria-label="Narration transcript">
+    <button id="sg-read-close" aria-label="Close transcript">Close</button>
+    <h2>The Watering Can Speaks</h2>
+    <p class="sg-read-note">the six lines the can says as the garden is tended — scroll to the chapter and turn on Narration to hear them</p>
+    <ol class="sg-read-list">
+      <li><span class="numeral">I</span> <b>The Dry Cloud Nursery</b> — I've been waiting by the dry taps, little gardener. Whatever you find today — water it well.</li>
+      <li><span class="numeral">II</span> <b>The First Seed</b> — One drop for the seed, one breath for the vine. Bridges are just roots that decided to cross.</li>
+      <li><span class="numeral">III</span> <b>The Wind Maze</b> — The wind moves the islands, not the path. Watch the ribbons and let the gust do the carrying.</li>
+      <li><span class="numeral">IV</span> <b>The Thunder Orchard</b> — Thunder fruit keeps the storm in a pod. Catch it gently — the rain inside is still asleep.</li>
+      <li><span class="numeral">V</span> <b>The Garden Meets the Sun</b> — Even the sun wants the garden to last. Plant in the light, but never without a shade of cloud.</li>
+      <li><span class="numeral">VI</span> <b>Rain Returns</b> — Open the valve and let the world drink. A garden's last job is to give the water back.</li>
+    </ol>
+  </dialog>
   <script type="module" src="./shellMain.js"></script>
 </body>
 </html>
