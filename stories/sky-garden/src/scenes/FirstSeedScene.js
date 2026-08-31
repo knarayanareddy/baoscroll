@@ -217,6 +217,7 @@ export class FirstSeedScene extends BaseScene {
     // shot A: planting close
     let px = lerp(-3.1, -2.8, plantT), py = lerp(0.15, 0.25, plantT), pz = 1.9;
     let lx = -4.35, ly = -0.2, lz = 0.2;
+    let cs = 1.5;
     // shot B: vine birth, medium side (gardener left, growing tip centre)
     const b = win(local, 0.21, 0.31);
     px = lerp(px, lerp(-1.2, 0.6, growT), b);
@@ -225,6 +226,7 @@ export class FirstSeedScene extends BaseScene {
     lx = lerp(lx, lerp(-2.6, -1.2, growT), b);
     ly = lerp(ly, lerp(-0.35, -0.5, growT), b);
     lz = lerp(lz, 0.1, b);
+    cs = lerp(cs, 1.35, b);
     // shot C: wide gap (the proposition) -> close tracking across:
     // blend B -> wide at 0.55-0.63, wide -> track at 0.61-0.69
     const wA = win(local, 0.55, 0.63);
@@ -236,13 +238,20 @@ export class FirstSeedScene extends BaseScene {
     const toWide = wA, toTrack = wB;
     px = lerp(px, wideX, toWide); py = lerp(py, wideY, toWide); pz = lerp(pz, wideZ, toWide);
     lx = lerp(lx, wideLookX, toWide); ly = lerp(ly, wideLookY, toWide); lz = lerp(lz, wideLookZ, toWide);
+    cs = lerp(cs, 0.95, toWide);
     px = lerp(px, trackX, toTrack); py = lerp(py, trackY, toTrack); pz = lerp(pz, trackZ, toTrack);
     lx = lerp(lx, trackLookX, toTrack); ly = lerp(ly, trackLookY, toTrack); lz = lerp(lz, trackLookZ, toTrack);
+    cs = lerp(cs, 1.45, toTrack);
     // shot D: arrival island, wind beyond
     const d = win(local, 0.78, 0.88);
     px = lerp(px, 6.4, d); py = lerp(py, 0.9, d); pz = lerp(pz, 3.4, d);
     lx = lerp(lx, 4.5, d); ly = lerp(ly, -0.25, d); lz = lerp(lz, -0.2, d);
-    cam.position.set(px, py, pz);
+    cs = lerp(cs, 1.3, d);
+    // per-shot push-in: ride the camera 1/cs closer along the view ray
+    // (contact shots big, wide shots wide) — with FOV 42 the story fills
+    // the frame instead of floating in it
+    const f = 1 / cs;
+    cam.position.set(lx + (px - lx) * f, ly + (py - ly) * f, lz + (pz - lz) * f);
     cam.lookAt(lx, ly, lz);
   }
 

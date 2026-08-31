@@ -255,16 +255,19 @@ export class DryCloudNurseryScene extends BaseScene {
     // setup
     let px = lerp(-3.6, -2.6, walkT), py = lerp(0.9, 1.0, walkT), pz = lerp(4.4, 4.0, walkT);
     let lx = -0.2, ly = -0.3, lz = 0.5;
+    let cs = 1.25;
     // satchel (close)
     px = lerp(px, lerp(2.3, 1.9, satchelT), shot);
     py = lerp(py, lerp(0.35, 0.3, satchelT), shot);
     pz = lerp(pz, lerp(2.6, 2.3, satchelT), shot);
     lx = lerp(lx, 0.8, shot); ly = lerp(ly, 0.1, shot); lz = lerp(lz, 0.6, shot);
+    cs = lerp(cs, 1.55, shot);
     // watering (close contact)
     px = lerp(px, lerp(1.9, 1.55, waterT), shot2);
     py = lerp(py, lerp(0.15, 0.05, waterT), shot2);
     pz = lerp(pz, lerp(2.0, 1.7, waterT), shot2);
     lx = lerp(lx, 0.3, shot2); ly = lerp(ly, -0.15, shot2); lz = lerp(lz, 0.45, shot2);
+    cs = lerp(cs, 1.55, shot2);
     // root runner to the edge (exit)
     px = lerp(px, lerp(1.6, 3.4, edgeT), shot3);
     py = lerp(py, lerp(0.3, 0.4, edgeT), shot3);
@@ -272,7 +275,12 @@ export class DryCloudNurseryScene extends BaseScene {
     lx = lerp(lx, lerp(1.0, 3.4, edgeT), shot3);
     ly = lerp(ly, lerp(-0.25, -0.15, edgeT), shot3);
     lz = lerp(lz, lerp(0.4, 0.25, edgeT), shot3);
-    cam.position.set(px, py, pz);
+    cs = lerp(cs, 1.3, shot3);
+    // per-shot push-in: ride the camera 1/cs closer along the view ray
+    // (contact shots big, wide shots wide) — with FOV 42 the story fills
+    // the frame instead of floating in it
+    const f = 1 / cs;
+    cam.position.set(lx + (px - lx) * f, ly + (py - ly) * f, lz + (pz - lz) * f);
     cam.lookAt(lx, ly, lz);
   }
 

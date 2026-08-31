@@ -41,7 +41,7 @@ export class ShellExperience {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.scene = new THREE.Scene();
     this.scene.fog = new THREE.Fog(new THREE.Color('#dfe8ee'), 8, 42);
-    this.camera = new THREE.PerspectiveCamera(56, 1, 0.1, 120); // wider FOV: chapters must read, not peek
+    this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 120); // telephoto: the story fills the frame
     this._resize();
     window.addEventListener('resize', () => this._resize());
 
@@ -160,15 +160,31 @@ export class ShellExperience {
 
   /* ---------- transitions (Phase 6 transition language) ---------- */
   _initTransitions() {
+    // rising CLOUD BANK: fully opaque paper-cream cover with a soft,
+    // lobbied cloud edge along the bottom — the sky garden's own medium,
+    // not a jagged white slab (and it fully covers the screen at peak)
     const c = document.createElement('canvas');
     c.width = 512; c.height = 256;
     const x = c.getContext('2d');
-    // torn-paper horizontal edge
-    x.fillStyle = '#f4efe2';
-    x.beginPath();
-    x.moveTo(0, 0); x.lineTo(512, 0); x.lineTo(512, 140);
-    for (let i = 512; i >= 0; i -= 16) x.lineTo(i, 140 + Math.sin(i * 0.11) * 14 + ((i * 7919) % 13));
-    x.closePath(); x.fill();
+    x.fillStyle = '#f0e9da';
+    x.fillRect(0, 0, 512, 256);
+    // paper grain
+    for (let i = 0; i < 700; i++) {
+      x.fillStyle = `rgba(150, 135, 110, ${0.02 + (i % 5) * 0.008})`;
+      x.fillRect((i * 61) % 512, (i * 97) % 256, 1 + (i % 2), 1);
+    }
+    // soft cloud lobes along the bottom edge
+    for (let i = 0; i <= 24; i++) {
+      const cx = i * 22;
+      const cy = 256 - ((i * 13) % 10);
+      const r = 30 + ((i * 37) % 18);
+      const g = x.createRadialGradient(cx, cy, r * 0.25, cx, cy, r);
+      g.addColorStop(0, 'rgba(240, 233, 218, 1)');
+      g.addColorStop(0.7, 'rgba(240, 233, 218, 1)');
+      g.addColorStop(1, 'rgba(240, 233, 218, 0)');
+      x.fillStyle = g;
+      x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fill();
+    }
     const paperTex = new THREE.CanvasTexture(c);
     paperTex.colorSpace = THREE.SRGBColorSpace;
     this._transScene = new THREE.Scene();
@@ -183,47 +199,46 @@ export class ShellExperience {
     // Each is a pure function of the cover value, so scrubbing backwards
     // replays the morph in reverse.
     const accentMat = (color) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.9 });
-    // I->II root line: a single line that draws itself across the paper
-    this._morphRoot = new THREE.Mesh(new THREE.PlaneGeometry(2, 0.025), accentMat('#7fae6e'));
-    this._morphRoot.position.y = -1.2;
+    // I->II root line: a single line that draws itself across the page
+    this._morphRoot = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.035), accentMat('#7fae6e'));
+    this._morphRoot.position.z = 0.02;
     this._morphRoot.scale.x = 0.001;
     this._transScene.add(this._morphRoot);
     // II->III vine braid -> wind ribbon: two interlaced strands that
     // straighten into one flowing ribbon
-    this._braidA = new THREE.Mesh(new THREE.PlaneGeometry(2, 0.022), accentMat('#8fae7a'));
-    this._braidB = new THREE.Mesh(new THREE.PlaneGeometry(2, 0.022), accentMat('#8fb3c9'));
-    for (const m of [this._braidA, this._braidB]) { m.position.y = -1.2; m.scale.x = 0.001; this._transScene.add(m); }
+    this._braidA = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.035), accentMat('#8fae7a'));
+    this._braidB = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.035), accentMat('#8fb3c9'));
+    for (const m of [this._braidA, this._braidB]) { m.position.z = 0.02; m.scale.x = 0.001; this._transScene.add(m); }
     // III->IV kite cloth -> thunder leaf: a diamond that rounds into a leaf
-    this._kite = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.5), new THREE.MeshBasicMaterial({ color: '#f4d9a8', transparent: true, opacity: 0.85, side: THREE.DoubleSide }));
+    this._kite = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.55), new THREE.MeshBasicMaterial({ color: '#f4d9a8', transparent: true, opacity: 0.9, side: THREE.DoubleSide }));
     this._kite.rotation.z = Math.PI / 4;
-    this._kite.position.y = -1.2;
+    this._kite.position.z = 0.02;
     this._kite.scale.setScalar(0.001);
     this._transScene.add(this._kite);
     // IV->V rain bead -> sun lens: a bead that thins into a lens ring
-    // bead -> lens ring: pre-built geometry variants (no per-frame
-    // allocation — plan QA criterion)
+    // IV->V rain bead -> sun lens: pre-built ring variants, big and central
     this._beadGeos = [];
     for (let i = 0; i < 16; i++) {
       const r = i / 15;
-      this._beadGeos.push(new THREE.RingGeometry(0.16 + r * 0.06, 0.3 - r * 0.09, 20));
+      this._beadGeos.push(new THREE.RingGeometry(0.3 + r * 0.1, 0.55 - r * 0.15, 24));
     }
     this._bead = new THREE.Mesh(this._beadGeos[0], new THREE.MeshBasicMaterial({ color: '#e0b45e', transparent: true, opacity: 0.9, side: THREE.DoubleSide }));
-    this._bead.position.y = -1.2;
+    this._bead.position.z = 0.02;
     this._bead.scale.setScalar(0.001);
     this._transScene.add(this._bead);
     // V->VI sun thread -> rain halo: a sunburst that opens into a halo ring
-    this._halo = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.24, 24), new THREE.MeshBasicMaterial({ color: '#8fa8bf', transparent: true, opacity: 0.9, side: THREE.DoubleSide }));
-    this._halo.position.y = -1.2;
+    this._halo = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.5, 28), new THREE.MeshBasicMaterial({ color: '#8fa8bf', transparent: true, opacity: 0.9, side: THREE.DoubleSide }));
+    this._halo.position.z = 0.02;
     this._halo.scale.setScalar(0.001);
     this._transScene.add(this._halo);
     this._threads = [];
     for (let i = 0; i < 8; i++) {
-      const th = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.018), new THREE.MeshBasicMaterial({ color: '#ffdf8a', transparent: true, opacity: 0.85 }));
+      const th = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.028), new THREE.MeshBasicMaterial({ color: '#ffdf8a', transparent: true, opacity: 0.85 }));
       const holder = new THREE.Object3D();
       holder.rotation.z = (i / 8) * Math.PI * 2;
-      th.position.x = 0.3;
+      th.position.x = 0.4;
       holder.add(th);
-      holder.position.y = -1.2;
+      holder.position.z = 0.02;
       this._transScene.add(holder);
       this._threads.push({ th, holder });
     }
@@ -250,7 +265,7 @@ export class ShellExperience {
     for (let i = 0; i < n - 1; i++) {
       const boundary = (i + 1) / n;
       const d = g - boundary;
-      if (Math.abs(d) < 0.045) { bp = 1 - Math.abs(d) / 0.045; idx = i; break; } // ~1 viewport of scroll for the full wipe at 400vh sections
+      if (Math.abs(d) < 0.03) { bp = 1 - Math.abs(d) / 0.03; idx = i; break; } // a decisive crossing, not a sustained slab
     }
     const wipeY = () => -1.2 + Math.sin((this._bp || 0) * Math.PI) * 1.15;
     if (idx >= 0 && bp > 0.001) {
@@ -262,7 +277,7 @@ export class ShellExperience {
       // fade all morphs, then drive the active one (pure in cover)
       for (const name of ['root', 'braid', 'kite', 'bead', 'halo']) this._setMorphOpacity(name, 0);
       this._activeMorph = def.name;
-      this._morphDrive(def.name, cover, wipeY());
+      this._morphDrive(def.name, cover);
       this._setMorphOpacity(def.name, Math.min(1, cover * 1.6));
       this._transVisible = true;
     } else {
@@ -273,43 +288,41 @@ export class ShellExperience {
     }
   }
 
-  _morphDrive(name, cover, y) {
-    // cover: 0 -> 1 -> 0 as the boundary is crossed; every value below is
-    // a pure function of cover (scrubbing backwards replays the morph)
+  _morphDrive(name, cover) {
+    // the motif plays at screen CENTRE, 30-50% of the frame, while the
+    // cloud bank covers. Every value is a pure function of cover, so
+    // scrubbing backwards replays the morph in reverse.
     if (name === 'root') {
       this._morphRoot.scale.x = Math.max(0.001, cover);          // draws itself
-      this._morphRoot.position.y = y;
     } else if (name === 'braid') {
-      // two interlaced strands straighten into a single ribbon line
-      const spread = (1 - cover) * 0.05;
-      const wave = (1 - cover) * 0.03;
-      this._braidA.scale.x = this._braidB.scale.x = Math.max(0.001, cover);
-      this._braidA.position.y = y + spread + Math.sin(cover * 6) * wave;
-      this._braidB.position.y = y - spread + Math.sin(cover * 6 + Math.PI) * wave;
-      this._braidA.rotation.z = (1 - cover) * 0.12;
-      this._braidB.rotation.z = -(1 - cover) * 0.12;
+      // two interlaced strands straighten into one flowing ribbon
+      const r = Math.min(1, cover * 1.3);
+      const spread = (1 - r) * 0.05;
+      const wave = (1 - r) * 0.05;
+      this._braidA.scale.set(Math.max(0.001, cover), 1, 1);
+      this._braidB.scale.set(Math.max(0.001, cover), 1, 1);
+      this._braidA.position.y = spread + Math.sin(r * 6) * wave;
+      this._braidB.position.y = -spread + Math.sin(r * 6 + Math.PI) * wave;
+      this._braidA.rotation.z = (1 - r) * 0.1;
+      this._braidB.rotation.z = -(1 - r) * 0.1;
     } else if (name === 'kite') {
       // diamond (kite cloth) rounds into a leaf: squash X, grow Y, settle
-      const r = Math.min(1, cover * 1.5);
-      this._kite.scale.set(0.001 + (1 - r * 0.4) * r * 1.4, 0.001 + r * 1.7, 1);
-      this._kite.rotation.z = Math.PI / 4 - r * 0.5;
-      this._kite.position.y = y;
-    } else if (name === 'bead') {
-      // bead (filled) thins into a lens ring: inner radius closes in
-      // (geometry variants pre-built — pure in cover, no allocation)
       const r = Math.min(1, cover * 1.4);
+      this._kite.scale.set(0.001 + (1 - r * 0.45) * r * 1.6, 0.001 + r * 1.5, 1);
+      this._kite.rotation.z = Math.PI / 4 - r * 0.6;
+    } else if (name === 'bead') {
+      // bead thins into a lens ring (pre-built variants, no allocation)
+      const r = Math.min(1, cover * 1.3);
       this._bead.geometry = this._beadGeos[Math.min(15, Math.round(r * 15))];
-      this._bead.scale.setScalar(Math.max(0.001, 0.3 + r * 1.1));
-      this._bead.position.y = y;
+      this._bead.scale.setScalar(Math.max(0.001, 0.55 + r * 0.5));
     } else if (name === 'halo') {
       // sunburst threads open outward and join into a halo ring
       const r = Math.min(1, cover * 1.3);
-      for (const { th, holder } of this._threads) {
-        holder.rotation.z += 0; // keep base angles
-        th.scale.x = 0.3 + r * 0.9;
-        th.position.x = 0.18 + r * 0.34;
+      for (const { th } of this._threads) {
+        th.scale.x = 0.55 + r * 0.8;
+        th.position.x = 0.35 + r * 0.5;
       }
-      this._halo.scale.setScalar(Math.max(0.001, r * 0.9));
+      this._halo.scale.setScalar(Math.max(0.001, r * 1.15));
       this._halo.material.opacity = r * 0.9;
       this._threads.forEach(({ th }) => { th.material.opacity = (1 - r * 0.7) * 0.85; });
     }

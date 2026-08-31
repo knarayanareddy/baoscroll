@@ -186,19 +186,27 @@ export class WindMazeScene extends BaseScene {
     const gxw = GX + lerp(ISLANDS[0].x, ISLANDS[4].x - 0.4, crossT); // gardener world x
     let px = -5.6, py = 1.6, pz = 4.8;
     let lx = -1.5, ly = 0.1, lz = -0.8;
+    let cs = 1.3;
     // grab (close, follows the gardener)
     const a = win(local, 0.2, 0.3);
     px = lerp(px, gxw + 1.6, a); py = lerp(py, 0.7, a); pz = lerp(pz, 1.8, a);
     lx = lerp(lx, gxw + 0.2, a); ly = lerp(ly, 0.35, a); lz = lerp(lz, -0.5, a);
+    cs = lerp(cs, 1.55, a);
     // cross (close tracking)
     const b = win(local, 0.5, 0.6);
     px = lerp(px, gxw + 1.3, b); py = lerp(py, 1.35, b); pz = lerp(pz, 3.2, b);
     lx = lerp(lx, gxw + 0.7, b); ly = lerp(ly, 0.25, b); lz = lerp(lz, 0, b);
+    cs = lerp(cs, 1.45, b);
     // gate + distant thunder
     const c = win(local, 0.78, 0.9);
     px = lerp(px, 6.8, c); py = lerp(py, 1.6, c); pz = lerp(pz, 5.6, c);
     lx = lerp(lx, 8.4, c); ly = lerp(ly, 1.0, c); lz = lerp(lz, -1.5, c);
-    cam.position.set(px, py, pz);
+    cs = lerp(cs, 1.25, c);
+    // per-shot push-in: ride the camera 1/cs closer along the view ray
+    // (contact shots big, wide shots wide) — with FOV 42 the story fills
+    // the frame instead of floating in it
+    const f = 1 / cs;
+    cam.position.set(lx + (px - lx) * f, ly + (py - ly) * f, lz + (pz - lz) * f);
     cam.lookAt(lx, ly, lz);
   }
 }

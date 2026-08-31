@@ -193,20 +193,28 @@ export class SunTerraceScene extends BaseScene {
     const gp = this.gardener.group.position;
     let px = -4.6, py = 0.6, pz = 4.6;
     let lx = 0, ly = -0.3, lz = -0.4;
+    let cs = 1.3;
     // canopy close (gardener at ~-0.7, canopy at ~-1.05, 0.4, 0.75)
     const a = win(local, 0.24, 0.34);
     px = lerp(px, 0.9, a); py = lerp(py, 0.5, a); pz = lerp(pz, 2.4, a);
     lx = lerp(lx, -0.8, a); ly = lerp(ly, 0.1, a); lz = lerp(lz, 0.6, a);
+    cs = lerp(cs, 1.55, a);
     // plant close (seed at 0.6, -0.55, 0.4)
     const b = win(local, 0.54, 0.64);
     px = lerp(px, 2.0, b); py = lerp(py, -0.2, b); pz = lerp(pz, 2.2, b);
     lx = lerp(lx, 0.6, b); ly = lerp(ly, -0.4, b); lz = lerp(lz, 0.4, b);
+    cs = lerp(cs, 1.5, b);
     // halo consequence
     const bloomT = win(local, 0.82, 1);
     const c = win(local, 0.78, 0.88);
     px = lerp(px, 1.2, c); py = lerp(py, 1.6, c); pz = lerp(pz, 5.0, c);
     lx = lerp(lx, 0.6, c); ly = lerp(ly, 0.0, c); lz = lerp(lz, 0.3, c);
-    cam.position.set(px, py, pz);
+    cs = lerp(cs, 1.25, c);
+    // per-shot push-in: ride the camera 1/cs closer along the view ray
+    // (contact shots big, wide shots wide) — with FOV 42 the story fills
+    // the frame instead of floating in it
+    const f = 1 / cs;
+    cam.position.set(lx + (px - lx) * f, ly + (py - ly) * f, lz + (pz - lz) * f);
     cam.lookAt(lx, ly, lz);
   }
 

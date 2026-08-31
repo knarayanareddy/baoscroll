@@ -240,19 +240,27 @@ export class RainReturnsScene extends BaseScene {
     //  .84-1  the wide aerial — the gardener small, the rain continuing
     let px = 0.1, py = 2.15, pz = 2.5;
     let lx = -1.3, ly = 1.9, lz = 0.75;
+    let cs = 1.55;
     // synchronized layers
     const a = win(local, 0.21, 0.33);
     px = lerp(px, 2.2, a); py = lerp(py, 3.2, a); pz = lerp(pz, 6.0, a);
     lx = lerp(lx, 0.3, a); ly = lerp(ly, 1.0, a); lz = lerp(lz, -2.5, a);
+    cs = lerp(cs, 1.25, a);
     // rain crosses to the world below (ground at y -5)
     const b = win(local, 0.54, 0.66);
     px = lerp(px, 1.0, b); py = lerp(py, 1.2, b); pz = lerp(pz, 8.0, b);
     lx = lerp(lx, 0, b); ly = lerp(ly, -3.0, b); lz = lerp(lz, -2, b);
+    cs = lerp(cs, 1.2, b);
     // the wide aerial
     const c = win(local, 0.8, 0.94);
     px = lerp(px, 3.0, c); py = lerp(py, 8.0, c); pz = lerp(pz, 17, c);
     lx = lerp(lx, 0, c); ly = lerp(ly, 0.5, c); lz = lerp(lz, -2, c);
-    cam.position.set(px, py, pz);
+    cs = lerp(cs, 1.0, c);
+    // per-shot push-in: ride the camera 1/cs closer along the view ray
+    // (contact shots big, wide shots wide) — with FOV 42 the story fills
+    // the frame instead of floating in it
+    const f = 1 / cs;
+    cam.position.set(lx + (px - lx) * f, ly + (py - ly) * f, lz + (pz - lz) * f);
     cam.lookAt(lx, ly, lz);
   }
 
