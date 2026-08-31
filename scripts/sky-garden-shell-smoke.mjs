@@ -95,11 +95,12 @@ const { PlaceholderScene } = await import('../stories/sky-garden/src/scenes/Plac
 const { WindMazeScene } = await import('../stories/sky-garden/src/scenes/WindMazeScene.js');
 const { FirstSeedScene } = await import('../stories/sky-garden/src/scenes/FirstSeedScene.js');
 const { DryCloudNurseryScene } = await import('../stories/sky-garden/src/scenes/DryCloudNurseryScene.js');
+const { RainReturnsScene } = await import('../stories/sky-garden/src/scenes/RainReturnsScene.js');
 const { ThunderOrchardScene } = await import('../stories/sky-garden/src/scenes/ThunderOrchardScene.js');
 const { SunTerraceScene } = await import('../stories/sky-garden/src/scenes/SunTerraceScene.js');
 
 const CH_NAMES = ['I Nursery', 'II First Seed', 'III Wind Maze', 'IV Thunder Orchard', 'V Sun Terrace', 'VI Rain Returns'];
-const SCENES = [DryCloudNurseryScene, FirstSeedScene, WindMazeScene, ThunderOrchardScene, SunTerraceScene, PlaceholderScene];
+const SCENES = [DryCloudNurseryScene, FirstSeedScene, WindMazeScene, ThunderOrchardScene, SunTerraceScene, RainReturnsScene];
 const kit = new SkyGardenKit('low');
 const ctx = (chapter) => ({ kit, chapter, tier: { low: 1, medium: 1.5, high: 2 }['low'], reducedMotion: false, quality: 'low' });
 

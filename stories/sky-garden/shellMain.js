@@ -13,6 +13,7 @@ import { ThunderOrchardScene } from './src/scenes/ThunderOrchardScene.js';
 import { WindMazeScene } from './src/scenes/WindMazeScene.js';
 import { FirstSeedScene } from './src/scenes/FirstSeedScene.js';
 import { DryCloudNurseryScene } from './src/scenes/DryCloudNurseryScene.js';
+import { RainReturnsScene } from './src/scenes/RainReturnsScene.js';
 import { SunTerraceScene } from './src/scenes/SunTerraceScene.js';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -25,7 +26,7 @@ const SCENES = [
   WindMazeScene,         // III Wind Maze          (Phase 5 — built)
   ThunderOrchardScene,   // IV Thunder Orchard     (Phase 3 benchmark — mounted)
   SunTerraceScene,       // V  Garden Meets the Sun (Phase 5 — built)
-  PlaceholderScene       // VI Rain Returns        (placeholder)
+  RainReturnsScene      // VI Rain Returns        (Phase 5 — built)
 ];
 
 async function boot() {
